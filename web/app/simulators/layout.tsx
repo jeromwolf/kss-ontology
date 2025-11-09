@@ -5,7 +5,7 @@ import { Home, X } from "lucide-react"
 export default function SimulatorLayout({
   children,
 }: {
-  children: React.Node
+  children: React.ReactNode
 }) {
   return (
     <div className="h-screen flex flex-col">
