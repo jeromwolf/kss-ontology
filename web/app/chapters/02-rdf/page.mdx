@@ -1,0 +1,1121 @@
+# Chapter 2: RDF - 온톨로지의 언어
+
+---
+
+## 🎯 학습 목표
+
+이 챕터를 마치면 다음을 할 수 있습니다:
+
+1. ✅ RDF Triple 구조 (Subject-Predicate-Object)를 완전히 이해한다
+2. ✅ URI/IRI 설계 베스트 프랙티스를 적용할 수 있다
+3. ✅ Literal 타입들 (xsd:string, xsd:date 등)을 구분하여 사용한다
+4. ✅ Blank Node의 용도와 주의사항을 이해한다
+5. ✅ 4가지 직렬화 포맷을 비교하고 변환할 수 있다
+6. ✅ 네임스페이스를 효과적으로 관리한다
+7. ✅ RDF Triple Editor로 실제 온톨로지를 구축한다
+
+---
+
+## 📚 목차
+
+1. [RDF란 무엇인가?](#1-rdf란-무엇인가)
+2. [RDF Triple의 구조](#2-rdf-triple의-구조)
+3. [URI와 IRI 설계](#3-uri와-iri-설계)
+4. [Literal과 데이터 타입](#4-literal과-데이터-타입)
+5. [Blank Node](#5-blank-node)
+6. [직렬화 포맷 4가지](#6-직렬화-포맷-4가지)
+7. [네임스페이스 관리](#7-네임스페이스-관리)
+8. [실습: 책 온톨로지 구축](#8-실습-책-온톨로지-구축)
+9. [요약과 다음 단계](#9-요약과-다음-단계)
+
+---
+
+## 1. RDF란 무엇인가?
+
+### Resource Description Framework
+
+**RDF (Resource Description Framework)**는 웹상의 자원을 표현하기 위한 W3C 표준입니다.
+
+**핵심 개념:**
+- **Resource (자원):** 표현하고자 하는 모든 것
+- **Description (기술):** 자원의 속성과 관계
+- **Framework (프레임워크):** 표준화된 방법
+
+### RDF의 탄생 배경 (1999)
+
+**문제:**
+```
+웹 페이지 A: <div>홍길동은 데이터공작소의 CEO</div>
+웹 페이지 B: <p>Hong Gildong - CEO at Data Workshop</p>
+```
+
+→ 같은 정보인데 컴퓨터는 이해 못함!
+
+**해결:**
+```turtle
+:홍길동 :직책 :CEO .
+:홍길동 :근무처 :데이터공작소 .
+```
+
+→ 컴퓨터가 이해 가능!
+
+### RDF의 3가지 핵심 원칙
+
+**1. 그래프 기반**
+- 노드(Node)와 엣지(Edge)로 표현
+- 네트워크 구조로 지식 연결
+
+**2. 개방성 (Open World Assumption)**
+- 명시되지 않은 것 ≠ 거짓
+- 언제든 추가 가능
+
+**3. 분산성**
+- 여러 곳에 데이터 분산 가능
+- URI로 전역적 식별
+
+---
+
+## 2. RDF Triple의 구조
+
+### Subject - Predicate - Object
+
+RDF의 기본 단위는 **Triple (트리플)**입니다.
+
+```
+Subject (주어) → Predicate (술어) → Object (목적어)
+```
+
+**예제 1: 간단한 문장**
+```
+문장: "홍길동은 사람이다"
+
+RDF Triple:
+Subject:   :홍길동
+Predicate: rdf:type
+Object:    :사람
+```
+
+**Turtle 표기:**
+```turtle
+:홍길동 rdf:type :사람 .
+```
+
+### Triple의 구성 요소 상세
+
+#### Subject (주어)
+- **URI/IRI** 또는 **Blank Node**
+- Triple이 설명하는 대상
+
+**예제:**
+```turtle
+# URI
+<http://example.org/person/홍길동> a :Person .
+
+# 짧은 표기 (네임스페이스 사용)
+:홍길동 a :Person .
+
+# Blank Node (나중에 설명)
+_:person1 a :Person .
+```
+
+#### Predicate (술어)
+- **반드시 URI/IRI**
+- Subject와 Object의 관계
+
+**예제:**
+```turtle
+:홍길동 :이름 "홍길동" .        # 속성
+:홍길동 :근무처 :데이터공작소 .  # 관계
+:홍길동 rdf:type :Person .     # 타입
+```
+
+#### Object (목적어)
+- **URI/IRI**, **Literal**, 또는 **Blank Node**
+- Subject의 값이나 연결된 자원
+
+**예제:**
+```turtle
+# URI (다른 자원과의 관계)
+:홍길동 :근무처 :데이터공작소 .
+
+# Literal (값)
+:홍길동 :이름 "홍길동" .
+:홍길동 :나이 45 .
+:홍길동 :생일 "1980-01-01"^^xsd:date .
+```
+
+### Triple의 시각화
+
+```
+    :이름 "홍길동"
+      ↗
+:홍길동
+      ↘
+    :근무처 → :데이터공작소
+```
+
+그래프로 보면:
+```
+[홍길동] --이름--> "홍길동"
+   |
+   +--근무처--> [데이터공작소]
+   |
+   +--타입--> [사람]
+```
+
+---
+
+## 3. URI와 IRI 설계
+
+### URI vs IRI
+
+**URI (Uniform Resource Identifier)**
+- ASCII 문자만 사용
+- 예: `http://example.org/person/hong`
+
+**IRI (Internationalized Resource Identifier)**
+- 유니코드 지원 (한글, 중국어, 아랍어 등)
+- 예: `http://example.org/person/홍길동`
+
+**RDF는 IRI를 표준으로 사용합니다.**
+
+### URI/IRI 설계 베스트 프랙티스
+
+#### 1. HTTP URI 사용
+
+**✅ 좋은 예:**
+```turtle
+<http://example.org/person/홍길동>
+<https://data.gov.kr/company/데이터공작소>
+```
+
+**❌ 나쁜 예:**
+```turtle
+<ftp://example.org/홍길동>    # FTP는 권장 안함
+<file:///C:/Users/홍길동>      # 로컬 경로 안됨
+```
+
+#### 2. 명확한 계층 구조
+
+**✅ 좋은 예:**
+```turtle
+:person/홍길동
+:company/데이터공작소
+:product/laptop/맥북프로
+```
+
+**❌ 나쁜 예:**
+```turtle
+:홍길동
+:데이터공작소맥북프로
+:thing123
+```
+
+#### 3. 슬래시(/) vs 해시(#)
+
+**슬래시 패턴 (권장):**
+```turtle
+http://example.org/person/홍길동
+http://example.org/company/데이터공작소
+```
+- 각 자원마다 별도 URI
+- RESTful API와 호환
+- 대규모 데이터에 적합
+
+**해시 패턴:**
+```turtle
+http://example.org/ontology#Person
+http://example.org/ontology#Company
+```
+- 한 문서 내 여러 정의
+- 소규모 온톨로지에 적합
+- 네임스페이스 정의에 사용
+
+#### 4. 복수형 vs 단수형
+
+**개체(Instance):** 복수형 컨테이너
+```turtle
+http://example.org/persons/홍길동
+http://example.org/companies/데이터공작소
+```
+
+**클래스(Class):** 단수형
+```turtle
+http://example.org/ontology#Person
+http://example.org/ontology#Company
+```
+
+#### 5. 버전 관리
+
+**✅ 좋은 예:**
+```turtle
+http://example.org/ontology/2025/person#
+http://example.org/v2/person/홍길동
+```
+
+**❌ 나쁜 예:**
+```turtle
+http://example.org/person-v2-final-really-final#
+```
+
+### 실전 예제
+
+**데이터공작소 온톨로지 URI 설계:**
+
+```turtle
+# 베이스 URI
+@base <http://dataworkshop.kr/> .
+
+# 네임스페이스
+@prefix : <http://dataworkshop.kr/ontology#> .
+@prefix person: <http://dataworkshop.kr/person/> .
+@prefix company: <http://dataworkshop.kr/company/> .
+
+# 클래스 정의 (해시 패턴)
+:Person a owl:Class .
+:Company a owl:Class .
+:CEO rdfs:subClassOf :Person .
+
+# 개체 정의 (슬래시 패턴)
+person:홍길동 a :CEO ;
+    :이름 "홍길동" ;
+    :근무처 company:데이터공작소 .
+
+company:데이터공작소 a :Company ;
+    :이름 "데이터공작소 TFT" ;
+    :설립년도 2018 .
+```
+
+---
+
+## 4. Literal과 데이터 타입
+
+### Literal이란?
+
+**Literal**은 실제 값(문자열, 숫자, 날짜 등)을 나타냅니다.
+
+**특징:**
+- Triple의 Object로만 올 수 있음
+- Subject나 Predicate로는 사용 불가
+
+### Plain Literal (기본 리터럴)
+
+**문법:**
+```turtle
+"문자열"         # 타입 없음
+"문자열"@언어태그  # 언어 지정
+```
+
+**예제:**
+```turtle
+:홍길동 :이름 "홍길동" .
+:홍길동 :name "Hong Gildong"@en .
+:홍길동 :name "홍길동"@ko .
+:홍길동 :description "데이터 전문가"@ko .
+```
+
+### Typed Literal (타입 리터럴)
+
+**문법:**
+```turtle
+"값"^^xsd:타입
+```
+
+#### 자주 사용하는 XSD 타입들
+
+**1. 문자열:**
+```turtle
+:홍길동 :이름 "홍길동"^^xsd:string .
+:홍길동 :email "hong@example.org"^^xsd:string .
+```
+
+**2. 숫자:**
+```turtle
+:홍길동 :나이 45^^xsd:integer .
+:제품 :가격 19.99^^xsd:decimal .
+:센서 :온도 36.5^^xsd:float .
+:통계 :정확도 0.95^^xsd:double .
+```
+
+**3. 불린:**
+```turtle
+:홍길동 :재직중 true^^xsd:boolean .
+:제품 :단종 false^^xsd:boolean .
+```
+
+**4. 날짜/시간:**
+```turtle
+:홍길동 :생일 "1980-01-01"^^xsd:date .
+:회의 :시작시간 "14:30:00"^^xsd:time .
+:이벤트 :발생시각 "2025-01-09T14:30:00Z"^^xsd:dateTime .
+:프로젝트 :기간 "P2Y6M"^^xsd:duration .  # 2년 6개월
+```
+
+**5. URI:**
+```turtle
+:홍길동 :홈페이지 "http://hong.example.org"^^xsd:anyURI .
+```
+
+### 타입 추론
+
+일부 값은 자동으로 타입이 추론됩니다:
+
+```turtle
+# 명시적 타입
+:홍길동 :나이 "45"^^xsd:integer .
+
+# 암묵적 타입 (Turtle 문법)
+:홍길동 :나이 45 .  # 자동으로 xsd:integer
+
+# 다른 예
+:제품 :가격 19.99 .              # xsd:decimal
+:홍길동 :재직중 true .            # xsd:boolean
+:홍길동 :생일 "1980-01-01" .     # xsd:string (타입 지정 필요!)
+```
+
+### 언어 태그 vs 타입
+
+**언어 태그:**
+```turtle
+:홍길동 rdfs:label "홍길동"@ko .
+:홍길동 rdfs:label "Hong Gildong"@en .
+:홍길동 rdfs:label "洪吉童"@zh .
+```
+
+**타입 지정:**
+```turtle
+:홍길동 :이름 "홍길동"^^xsd:string .
+```
+
+**⚠️ 주의:** 언어 태그와 타입을 동시에 사용할 수 없습니다!
+
+```turtle
+# ❌ 잘못된 예
+:홍길동 :이름 "홍길동"@ko^^xsd:string .  # 에러!
+
+# ✅ 올바른 예
+:홍길동 :이름 "홍길동"@ko .              # 언어만
+:홍길동 :이름 "홍길동"^^xsd:string .     # 타입만
+```
+
+---
+
+## 5. Blank Node
+
+### Blank Node란?
+
+**Blank Node (빈 노드)**는 URI가 없는 익명 자원입니다.
+
+**표기:**
+```turtle
+_:node1   # 명시적 Blank Node ID
+[]        # 익명 Blank Node (Turtle 문법)
+```
+
+### 언제 사용하나?
+
+**1. 중간 노드 (URI 불필요한 경우)**
+
+```turtle
+# 주소를 나타내는 복합 구조
+:홍길동 :주소 [
+    :도시 "서울" ;
+    :구 "강남구" ;
+    :상세주소 "테헤란로 123"
+] .
+```
+
+그래프로 보면:
+```
+[홍길동] --주소--> [_:addr1] --도시--> "서울"
+                          |--구--> "강남구"
+                          |--상세주소--> "테헤란로 123"
+```
+
+**2. 리스트 구조**
+
+```turtle
+:책 :저자들 [
+    rdf:first :저자1 ;
+    rdf:rest [
+        rdf:first :저자2 ;
+        rdf:rest rdf:nil
+    ]
+] .
+
+# 또는 Turtle 단축 표기
+:책 :저자들 ( :저자1 :저자2 ) .
+```
+
+**3. 임시 데이터**
+
+```turtle
+# 이름 모를 때
+[] a :Person ;
+    :나이 30 ;
+    :거주지 "서울" .
+```
+
+### Blank Node의 문제점
+
+**❌ 단점 1: 재참조 불가**
+
+```turtle
+# 다른 파일 A
+:홍길동 :주소 _:addr1 .
+_:addr1 :도시 "서울" .
+
+# 다른 파일 B
+_:addr1 :우편번호 "12345" .  # ❌ 다른 _:addr1!
+```
+
+**❌ 단점 2: 쿼리 어려움**
+
+```sparql
+# Blank Node는 직접 쿼리 불가
+SELECT ?address WHERE {
+    :홍길동 :주소 ?address .
+    ?address :도시 "서울" .
+}
+```
+
+**❌ 단점 3: 병합 문제**
+
+두 개의 RDF 그래프를 병합할 때 Blank Node ID 충돌 가능
+
+### 언제 URI를 사용해야 하나?
+
+**✅ URI 사용 권장:**
+- 다른 곳에서 참조할 가능성
+- 재사용 가능한 자원
+- 외부 시스템과 공유
+
+**✅ Blank Node 사용 가능:**
+- 단순한 중간 노드
+- 단일 파일 내에서만 사용
+- 구조적 데이터 (주소, 리스트)
+
+**실전 조언:**
+```turtle
+# ❌ Blank Node (나중에 문제 가능)
+:홍길동 :주소 [
+    :도시 "서울" ;
+    :구 "강남구"
+] .
+
+# ✅ URI (명확하고 재사용 가능)
+:홍길동 :주소 :주소_홍길동_1 .
+:주소_홍길동_1 :도시 "서울" ;
+    :구 "강남구" .
+```
+
+---
+
+## 6. 직렬화 포맷 4가지
+
+RDF는 여러 방식으로 표현 가능합니다. 같은 그래프, 다른 문법!
+
+### 1. Turtle (.ttl) - 가장 읽기 쉬움
+
+**특징:**
+- 사람이 읽기 쉬움
+- 간결한 문법
+- 가장 많이 사용
+
+**예제:**
+```turtle
+@prefix : <http://example.org/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+:홍길동 a foaf:Person ;
+    foaf:name "홍길동"@ko , "Hong Gildong"@en ;
+    foaf:age 45 ;
+    foaf:knows :김철수 .
+
+:김철수 a foaf:Person ;
+    foaf:name "김철수"@ko .
+```
+
+**문법 특징:**
+```turtle
+# 세미콜론(;): 같은 Subject
+:홍길동 :이름 "홍길동" ;
+        :나이 45 ;
+        :직책 "CEO" .
+
+# 콤마(,): 같은 Subject와 Predicate
+:홍길동 foaf:name "홍길동"@ko ,
+                   "Hong Gildong"@en ,
+                   "洪吉童"@zh .
+
+# 타입 단축 표기
+:홍길동 a :Person .  # = :홍길동 rdf:type :Person .
+```
+
+### 2. N-Triples (.nt) - 가장 간단
+
+**특징:**
+- 한 줄에 하나의 Triple
+- 단축 표기 없음
+- 파싱하기 쉬움 (프로그래밍)
+
+**예제:**
+```ntriples
+<http://example.org/홍길동> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Person> .
+<http://example.org/홍길동> <http://xmlns.com/foaf/0.1/name> "홍길동"@ko .
+<http://example.org/홍길동> <http://xmlns.com/foaf/0.1/name> "Hong Gildong"@en .
+<http://example.org/홍길동> <http://xmlns.com/foaf/0.1/age> "45"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<http://example.org/홍길동> <http://xmlns.com/foaf/0.1/knows> <http://example.org/김철수> .
+<http://example.org/김철수> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Person> .
+<http://example.org/김철수> <http://xmlns.com/foaf/0.1/name> "김철수"@ko .
+```
+
+**장점:**
+- 스트리밍 처리 가능
+- 대용량 데이터에 적합
+- 도구 지원 많음
+
+**단점:**
+- 사람이 읽기 어려움
+- 파일 크기 큼
+
+### 3. JSON-LD (.jsonld) - 웹 개발자 친화적
+
+**특징:**
+- JSON 문법 사용
+- JavaScript와 호환
+- Schema.org에서 사용
+
+**예제:**
+```json
+{
+  "@context": {
+    "@base": "http://example.org/",
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@graph": [
+    {
+      "@id": "홍길동",
+      "@type": "foaf:Person",
+      "foaf:name": [
+        {"@value": "홍길동", "@language": "ko"},
+        {"@value": "Hong Gildong", "@language": "en"}
+      ],
+      "foaf:age": {
+        "@value": "45",
+        "@type": "xsd:integer"
+      },
+      "foaf:knows": {"@id": "김철수"}
+    },
+    {
+      "@id": "김철수",
+      "@type": "foaf:Person",
+      "foaf:name": {"@value": "김철수", "@language": "ko"}
+    }
+  ]
+}
+```
+
+**장점:**
+- 기존 JSON 도구 활용
+- 웹 API에 적합
+- REST API와 자연스러운 통합
+
+**단점:**
+- RDF 개념 숨겨짐
+- 온톨로지 전문가에겐 불편
+
+### 4. RDF/XML (.rdf, .owl) - 최초 표준
+
+**특징:**
+- W3C 최초 표준
+- XML 생태계 활용
+- OWL 온톨로지에 사용
+
+**예제:**
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:foaf="http://xmlns.com/foaf/0.1/"
+    xmlns="http://example.org/">
+
+    <foaf:Person rdf:about="홍길동">
+        <foaf:name xml:lang="ko">홍길동</foaf:name>
+        <foaf:name xml:lang="en">Hong Gildong</foaf:name>
+        <foaf:age rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">45</foaf:age>
+        <foaf:knows rdf:resource="김철수"/>
+    </foaf:Person>
+
+    <foaf:Person rdf:about="김철수">
+        <foaf:name xml:lang="ko">김철수</foaf:name>
+    </foaf:Person>
+
+</rdf:RDF>
+```
+
+**장점:**
+- XML 도구 사용 가능
+- 스키마 검증 가능
+- 레거시 시스템과 호환
+
+**단점:**
+- 장황함 (Verbose)
+- 사람이 읽기 어려움
+- 현대적이지 않음
+
+### 포맷 비교표
+
+| 포맷 | 가독성 | 파일크기 | 파싱속도 | 웹 친화 | 사용처 |
+|------|--------|----------|----------|---------|--------|
+| **Turtle** | ⭐⭐⭐⭐⭐ | 중간 | 빠름 | 보통 | 개발, 교육 |
+| **N-Triples** | ⭐⭐ | 큼 | 매우빠름 | 낮음 | 대용량 처리 |
+| **JSON-LD** | ⭐⭐⭐⭐ | 큼 | 빠름 | ⭐⭐⭐⭐⭐ | Web API |
+| **RDF/XML** | ⭐ | 매우큼 | 느림 | 보통 | 레거시 |
+
+### 언제 뭘 쓰나?
+
+**Turtle:**
+- ✅ 온톨로지 설계
+- ✅ 교육 자료
+- ✅ 문서화
+
+**N-Triples:**
+- ✅ 대용량 데이터 로딩
+- ✅ ETL 파이프라인
+- ✅ 스트리밍 처리
+
+**JSON-LD:**
+- ✅ REST API
+- ✅ 웹 애플리케이션
+- ✅ Schema.org 마크업
+
+**RDF/XML:**
+- ✅ OWL 온톨로지 (Protégé)
+- ✅ 레거시 시스템
+- ❌ 새 프로젝트는 권장 안함
+
+---
+
+## 7. 네임스페이스 관리
+
+### 왜 네임스페이스가 필요한가?
+
+**문제:**
+```turtle
+# 어느 Person인가?
+<http://xmlns.com/foaf/0.1/Person>
+<http://schema.org/Person>
+<http://example.org/ontology#Person>
+```
+
+**해결:**
+```turtle
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix schema: <http://schema.org/> .
+@prefix : <http://example.org/ontology#> .
+
+foaf:Person      # 명확!
+schema:Person    # 명확!
+:Person          # 우리 온톨로지
+```
+
+### 표준 네임스페이스
+
+#### 필수 표준
+
+```turtle
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+```
+
+#### 자주 사용하는 어휘
+
+```turtle
+@prefix foaf:  <http://xmlns.com/foaf/0.1/> .          # 사람/조직
+@prefix dc:    <http://purl.org/dc/elements/1.1/> .    # 더블린 코어
+@prefix dcterms: <http://purl.org/dc/terms/> .         # 더블린 코어 확장
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> . # 분류체계
+@prefix schema: <http://schema.org/> .                  # Schema.org
+```
+
+#### 시간/공간
+
+```turtle
+@prefix time:  <http://www.w3.org/2006/time#> .
+@prefix geo:   <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+```
+
+### 베이스 URI
+
+**@base:** 기본 URI 설정
+
+```turtle
+@base <http://example.org/> .
+
+# 상대 URI 사용 가능
+<person/홍길동> a :Person .
+# = <http://example.org/person/홍길동>
+```
+
+### 프리픽스 관리 전략
+
+**1. 일관된 프리픽스 사용**
+
+```turtle
+# ✅ 좋은 예: 표준 프리픽스
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+
+# ❌ 나쁜 예: 임의의 프리픽스
+@prefix xxx: <http://xmlns.com/foaf/0.1/> .
+@prefix yyy: <http://purl.org/dc/elements/1.1/> .
+```
+
+**2. 프로젝트 전체에서 통일**
+
+```turtle
+# 모든 파일에서 같은 프리픽스 사용
+# file1.ttl, file2.ttl, file3.ttl 모두:
+@prefix : <http://myproject.org/ontology#> .
+@prefix data: <http://myproject.org/data/> .
+```
+
+**3. 네임스페이스 문서 작성**
+
+```turtle
+# namespaces.ttl
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf:  <http://xmlns.com/foaf/0.1/> .
+@prefix dc:    <http://purl.org/dc/elements/1.1/> .
+
+# 프로젝트 전용
+@prefix :      <http://dataworkshop.kr/ontology#> .
+@prefix data:  <http://dataworkshop.kr/data/> .
+@prefix person: <http://dataworkshop.kr/person/> .
+@prefix company: <http://dataworkshop.kr/company/> .
+```
+
+---
+
+## 8. 실습: 책 온톨로지 구축
+
+### 실습 목표
+
+RDF Triple Editor를 사용해서 **책-저자-출판사** 온톨로지를 구축합니다.
+
+### Step 1: 네임스페이스 정의
+
+```turtle
+@prefix : <http://bookstore.example.org/ontology#> .
+@prefix book: <http://bookstore.example.org/book/> .
+@prefix author: <http://bookstore.example.org/author/> .
+@prefix publisher: <http://bookstore.example.org/publisher/> .
+
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+```
+
+### Step 2: 클래스 정의
+
+```turtle
+# 책 클래스
+:Book a rdfs:Class ;
+    rdfs:label "책"@ko , "Book"@en ;
+    rdfs:comment "출판된 책을 나타냅니다."@ko .
+
+# 저자 클래스
+:Author a rdfs:Class ;
+    rdfs:label "저자"@ko , "Author"@en ;
+    rdfs:comment "책의 저자를 나타냅니다."@ko .
+
+# 출판사 클래스
+:Publisher a rdfs:Class ;
+    rdfs:label "출판사"@ko , "Publisher"@en ;
+    rdfs:comment "책을 출판하는 회사입니다."@ko .
+```
+
+### Step 3: 프로퍼티 정의
+
+```turtle
+# 저자 관계
+:hasAuthor a rdf:Property ;
+    rdfs:label "저자"@ko , "has author"@en ;
+    rdfs:domain :Book ;
+    rdfs:range :Author .
+
+# 출판사 관계
+:publishedBy a rdf:Property ;
+    rdfs:label "출판사"@ko , "published by"@en ;
+    rdfs:domain :Book ;
+    rdfs:range :Publisher .
+
+# 제목
+:title a rdf:Property ;
+    rdfs:label "제목"@ko , "title"@en ;
+    rdfs:domain :Book ;
+    rdfs:range xsd:string .
+
+# 출판일
+:publicationDate a rdf:Property ;
+    rdfs:label "출판일"@ko , "publication date"@en ;
+    rdfs:domain :Book ;
+    rdfs:range xsd:date .
+
+# ISBN
+:isbn a rdf:Property ;
+    rdfs:label "ISBN"@ko ;
+    rdfs:domain :Book ;
+    rdfs:range xsd:string .
+
+# 페이지 수
+:numberOfPages a rdf:Property ;
+    rdfs:label "페이지수"@ko , "number of pages"@en ;
+    rdfs:domain :Book ;
+    rdfs:range xsd:integer .
+
+# 저자 이름
+:authorName a rdf:Property ;
+    rdfs:label "이름"@ko , "name"@en ;
+    rdfs:domain :Author ;
+    rdfs:range xsd:string .
+
+# 출판사 이름
+:publisherName a rdf:Property ;
+    rdfs:label "출판사명"@ko , "publisher name"@en ;
+    rdfs:domain :Publisher ;
+    rdfs:range xsd:string .
+```
+
+### Step 4: 실제 데이터 추가
+
+```turtle
+# 저자들
+author:이외수 a :Author ;
+    :authorName "이외수"@ko ;
+    :authorName "Lee Oesu"@en .
+
+author:김영하 a :Author ;
+    :authorName "김영하"@ko ;
+    :authorName "Kim Yeong-ha"@en .
+
+# 출판사들
+publisher:문학동네 a :Publisher ;
+    :publisherName "문학동네"@ko .
+
+publisher:민음사 a :Publisher ;
+    :publisherName "민음사"@ko .
+
+# 책들
+book:광해 a :Book ;
+    :title "광해, 왕이 된 남자"@ko ;
+    :hasAuthor author:이외수 ;
+    :publishedBy publisher:문학동네 ;
+    :publicationDate "2012-08-15"^^xsd:date ;
+    :isbn "978-89-546-1234-5" ;
+    :numberOfPages 352 .
+
+book:살인자의기억법 a :Book ;
+    :title "살인자의 기억법"@ko ;
+    :hasAuthor author:김영하 ;
+    :publishedBy publisher:문학동네 ;
+    :publicationDate "2013-06-24"^^xsd:date ;
+    :isbn "978-89-546-5678-9" ;
+    :numberOfPages 216 .
+
+book:빛의제국 a :Book ;
+    :title "빛의 제국"@ko ;
+    :hasAuthor author:김영하 ;
+    :publishedBy publisher:문학동네 ;
+    :publicationDate "2006-05-19"^^xsd:date ;
+    :isbn "978-89-546-9012-3" ;
+    :numberOfPages 288 .
+```
+
+### Step 5: RDF Triple Editor에서 실습
+
+**🎮 RDF Triple Editor 열기:**
+- URL: https://kss.ai.kr/components/rdf-editor
+
+**실습 순서:**
+
+1. **위의 코드를 복사해서 에디터에 붙여넣기**
+
+2. **Validate 버튼 클릭**
+   - 문법 오류 확인
+   - 에러 메시지 읽고 수정
+
+3. **Convert 버튼으로 포맷 변환**
+   - Turtle → N-Triples
+   - Turtle → JSON-LD
+   - 각 포맷 비교
+
+4. **추가 데이터 입력**
+   - 당신이 좋아하는 책 추가
+   - 새로운 저자 추가
+   - 관계 연결
+
+5. **복잡한 쿼리 시나리오**
+   - "문학동네에서 출판한 모든 책은?"
+   - "김영하가 쓴 책들의 평균 페이지 수는?"
+
+### Step 6: 그래프 시각화
+
+3D Knowledge Graph에서 확인:
+```
+[이외수] --저자--> [광해, 왕이 된 남자] --출판사--> [문학동네]
+                                       |
+                                    --출판일--> "2012-08-15"
+                                       |
+                                    --페이지수--> 352
+
+[김영하] --저자--> [살인자의 기억법] --출판사--> [문학동네]
+        |
+        +--저자--> [빛의 제국] --출판사--> [문학동네]
+```
+
+---
+
+## 9. 요약과 다음 단계
+
+### 핵심 정리
+
+**1. RDF Triple 구조**
+```
+Subject --Predicate--> Object
+```
+- Subject: URI/IRI, Blank Node
+- Predicate: URI/IRI만
+- Object: URI/IRI, Literal, Blank Node
+
+**2. URI/IRI 설계**
+- HTTP URI 사용
+- 명확한 계층 구조
+- 슬래시 vs 해시 패턴
+- 버전 관리
+
+**3. Literal과 타입**
+- Plain: "문자열", "문자열"@언어
+- Typed: "값"^^xsd:타입
+- 자주 사용: string, integer, date, boolean
+
+**4. Blank Node**
+- 익명 자원
+- 중간 노드에 사용
+- 재참조 불가 → 가급적 URI 사용
+
+**5. 직렬화 포맷**
+- Turtle: 개발/교육
+- N-Triples: 대용량
+- JSON-LD: Web API
+- RDF/XML: 레거시
+
+**6. 네임스페이스**
+- 표준 프리픽스 사용
+- 프로젝트 전체 통일
+- 문서화
+
+### 실전 체크리스트
+
+**RDF 모델링 시:**
+- [ ] 모든 자원에 의미있는 URI 부여
+- [ ] 표준 네임스페이스 사용
+- [ ] 적절한 데이터 타입 선택
+- [ ] Blank Node 최소화
+- [ ] 언어 태그 활용 (다국어)
+
+**파일 작성 시:**
+- [ ] Turtle 포맷으로 작성
+- [ ] 네임스페이스 선언
+- [ ] 주석 추가 (rdfs:label, rdfs:comment)
+- [ ] 들여쓰기와 세미콜론 활용
+- [ ] 버전 관리
+
+### 다음 챕터
+
+**Chapter 3: RDFS와 OWL**
+
+RDF에 **의미(Semantics)**를 더합니다:
+- 클래스 계층 (rdfs:subClassOf)
+- 프로퍼티 계층 (rdfs:subPropertyOf)
+- OWL로 복잡한 제약 표현
+- **RDF Triple Editor로 실습!**
+
+---
+
+## 📝 연습 문제
+
+### 문제 1: Triple 구조 이해
+
+다음 문장을 RDF Triple로 표현하세요:
+
+**문장:** "데이터공작소는 2018년에 설립되었고, CEO는 홍길동이다."
+
+**정답:**
+```turtle
+@prefix : <http://example.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+:데이터공작소 a :Company ;
+    :설립년도 "2018"^^xsd:gYear ;
+    :hasCEO :홍길동 .
+
+:홍길동 a :Person .
+```
+
+### 문제 2: 포맷 변환
+
+다음 Turtle을 N-Triples로 변환하세요:
+
+**Turtle:**
+```turtle
+@prefix : <http://ex.org/> .
+:홍길동 a :Person ;
+    :name "홍길동"@ko , "Hong"@en ;
+    :age 45 .
+```
+
+**정답:**
+```ntriples
+<http://ex.org/홍길동> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex.org/Person> .
+<http://ex.org/홍길동> <http://ex.org/name> "홍길동"@ko .
+<http://ex.org/홍길동> <http://ex.org/name> "Hong"@en .
+<http://ex.org/홍길동> <http://ex.org/age> "45"^^<http://www.w3.org/2001/XMLSchema#integer> .
+```
+
+### 문제 3: 실전 모델링
+
+**시나리오:**
+- 회사 "ABC Corp"
+- 직원: 홍길동 (CEO), 김철수 (CTO)
+- 부서: 개발팀, 영업팀
+- 홍길동은 개발팀 소속
+- 김철수는 개발팀 소속
+
+RDF로 표현하세요. (RDF Triple Editor 사용)
+
+---
+
+## 🔗 참고 자료
+
+### W3C 표준
+1. RDF 1.1 Concepts: https://www.w3.org/TR/rdf11-concepts/
+2. RDF 1.1 Turtle: https://www.w3.org/TR/turtle/
+3. JSON-LD 1.1: https://www.w3.org/TR/json-ld11/
+
+### 도구
+1. RDF Validator: http://www.w3.org/RDF/Validator/
+2. Prefix.cc (네임스페이스 검색): http://prefix.cc/
+3. RDF Playground: https://rdf-playground.dcc.uchile.cl/
+
+### 실무 예제
+1. Schema.org: https://schema.org/
+2. DBpedia: https://www.dbpedia.org/
+3. Wikidata: https://www.wikidata.org/

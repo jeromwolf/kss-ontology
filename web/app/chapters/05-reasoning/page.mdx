@@ -1,0 +1,1629 @@
+# Chapter 5: 추론 엔진과 온톨로지 도구
+
+---
+
+## 🎯 학습 목표
+
+이 챕터를 마치면 다음을 할 수 있습니다:
+
+1. ✅ Inference와 Deduction의 차이를 이해한다
+2. ✅ RDFS와 OWL 추론 규칙을 구분하여 적용한다
+3. ✅ 4가지 Reasoner (Pellet, HermiT, FaCT++, ELK)의 특성을 이해한다
+4. ✅ OWA, CWA, UNA 개념을 설명할 수 있다
+5. ✅ Protégé로 온톨로지를 생성하고 추론을 실행한다
+6. ✅ Python (rdflib)과 Java (Jena)로 RDF를 조작한다
+7. ✅ Reasoning Engine 시뮬레이터로 추론 과정을 시각화한다
+
+---
+
+## 📚 목차
+
+1. [추론이란 무엇인가?](#1-추론이란-무엇인가)
+2. [Inference vs Deduction](#2-inference-vs-deduction)
+3. [RDFS 추론 실전](#3-rdfs-추론-실전)
+4. [OWL 추론 규칙](#4-owl-추론-규칙)
+5. [4가지 Reasoner 비교](#5-4가지-reasoner-비교)
+6. [OWA, CWA, UNA](#6-owa-cwa-una)
+7. [추론 성능과 한계](#7-추론-성능과-한계)
+8. [Protégé 완전 가이드](#8-protégé-완전-가이드)
+9. [Python: rdflib](#9-python-rdflib)
+10. [Java: Apache Jena](#10-java-apache-jena)
+11. [Triple Store 비교](#11-triple-store-비교)
+12. [실습: Reasoning Engine](#12-실습-reasoning-engine)
+13. [실전 프로젝트](#13-실전-프로젝트)
+14. [요약과 다음 단계](#14-요약과-다음-단계)
+
+---
+
+## 1. 추론이란 무엇인가?
+
+### 추론의 정의
+
+**추론 (Reasoning)**은 명시적 지식으로부터 암묵적 지식을 도출하는 과정입니다.
+
+**예제:**
+```turtle
+# 명시적 사실
+:홍길동 a :CEO .
+:CEO rdfs:subClassOf :Employee .
+:Employee rdfs:subClassOf :Person .
+
+# 추론된 사실 (암묵적)
+:홍길동 a :Employee .  # 추론!
+:홍길동 a :Person .    # 추론!
+```
+
+### 왜 추론이 필요한가?
+
+**1. 데이터 입력 최소화**
+```turtle
+# 입력: 1개 사실만
+:홍길동 a :CEO .
+
+# 자동 추론: 4개 사실
+:홍길동 a :CEO .
+:홍길동 a :Employee .
+:홍길동 a :Person .
+:홍길동 a rdfs:Resource .
+```
+
+**2. 데이터 일관성 유지**
+```turtle
+# 명시
+:홍길동 :worksAt :데이터공작소 .
+:worksAt rdfs:domain :Person .
+
+# 추론으로 자동 확인
+:홍길동 a :Person .  ✅
+```
+
+**3. 불일치 탐지**
+```turtle
+:홍길동 a :Person .
+:홍길동 a :Company .
+:Person owl:disjointWith :Company .
+
+# 추론 결과: ❌ 모순!
+```
+
+**4. 복잡한 질문에 답변**
+```sparql
+# "홍길동의 모든 조상은?"
+SELECT ?ancestor WHERE {
+    :홍길동 :parent+ ?ancestor .  # Property Path로 추론
+}
+```
+
+### 추론의 종류
+
+**1. Forward Chaining (전방 추론)**
+- 규칙을 미리 적용
+- 모든 결과를 사전 계산
+- 빠른 쿼리, 느린 업데이트
+
+**2. Backward Chaining (후방 추론)**
+- 쿼리 시점에 필요한 것만 추론
+- 실시간 계산
+- 느린 쿼리, 빠른 업데이트
+
+**3. Hybrid**
+- 두 방식의 조합
+- 실무에서 가장 많이 사용
+
+---
+
+## 2. Inference vs Deduction
+
+### Inference (추론)
+
+**정의:** 기존 지식으로부터 새로운 지식을 도출
+
+**특징:**
+- 100% 확실하지 않을 수 있음
+- 확률적 요소 포함 가능
+- 귀납적 추론 포함
+
+**예제:**
+```
+사실: 지금까지 본 모든 까마귀는 검정색
+추론: 모든 까마귀는 검정색이다
+```
+
+### Deduction (연역)
+
+**정의:** 논리 규칙을 적용하여 필연적 결론 도출
+
+**특징:**
+- 100% 확실
+- 논리적 필연성
+- 수학적 증명
+
+**예제:**
+```
+규칙: A ⊆ B, B ⊆ C → A ⊆ C
+사실: CEO ⊆ Employee, Employee ⊆ Person
+결론: CEO ⊆ Person (필연적!)
+```
+
+### RDFS/OWL 추론은?
+
+**→ Deduction (연역)!**
+
+RDFS와 OWL의 추론은 **논리적으로 필연적인 연역**입니다.
+
+**증명 가능:**
+```turtle
+# 전제 1
+:CEO rdfs:subClassOf :Employee .
+
+# 전제 2
+:Employee rdfs:subClassOf :Person .
+
+# 결론 (필연적)
+:CEO rdfs:subClassOf :Person .
+
+# 증명: RDFS 규칙 11 (subClassOf 전이성)
+```
+
+---
+
+## 3. RDFS 추론 실전
+
+### RDFS 11가지 규칙 복습
+
+Chapter 3에서 배운 11가지 규칙을 실전에 적용합니다.
+
+### 예제 1: 조직도 추론
+
+**입력 데이터:**
+```turtle
+@prefix : <http://company.example.org/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# 클래스 계층
+:CEO rdfs:subClassOf :ExecutiveOfficer .
+:ExecutiveOfficer rdfs:subClassOf :Manager .
+:Manager rdfs:subClassOf :Employee .
+:Employee rdfs:subClassOf :Person .
+
+# 프로퍼티 정의
+:manages rdfs:domain :Manager ;
+        rdfs:range :Department .
+
+# 데이터
+:홍길동 a :CEO ;
+        :manages :개발팀 .
+```
+
+**추론 과정:**
+
+**Step 1: rdfs11 (subClassOf 전이성)**
+```turtle
+# 명시적
+:CEO rdfs:subClassOf :ExecutiveOfficer .
+:ExecutiveOfficer rdfs:subClassOf :Manager .
+:Manager rdfs:subClassOf :Employee .
+:Employee rdfs:subClassOf :Person .
+
+# 추론
+:CEO rdfs:subClassOf :Manager .
+:CEO rdfs:subClassOf :Employee .
+:CEO rdfs:subClassOf :Person .
+:ExecutiveOfficer rdfs:subClassOf :Employee .
+:ExecutiveOfficer rdfs:subClassOf :Person .
+:Manager rdfs:subClassOf :Person .
+```
+
+**Step 2: rdfs9 (subClassOf 적용)**
+```turtle
+# 명시적
+:홍길동 a :CEO .
+
+# 추론
+:홍길동 a :ExecutiveOfficer .
+:홍길동 a :Manager .
+:홍길동 a :Employee .
+:홍길동 a :Person .
+```
+
+**Step 3: rdfs3 (range)**
+```turtle
+# 명시적
+:manages rdfs:range :Department .
+:홍길동 :manages :개발팀 .
+
+# 추론
+:개발팀 a :Department .
+```
+
+**총 추론 결과: 11개의 새로운 사실!**
+
+### 예제 2: 프로퍼티 계층 추론
+
+**입력:**
+```turtle
+# 프로퍼티 계층
+:worksAt rdfs:subPropertyOf :affiliatedWith .
+:affiliatedWith rdfs:subPropertyOf :relatedTo .
+
+# 데이터
+:홍길동 :worksAt :데이터공작소 .
+```
+
+**추론:**
+
+**rdfs5 (subPropertyOf 전이성):**
+```turtle
+:worksAt rdfs:subPropertyOf :relatedTo .
+```
+
+**rdfs7 (subPropertyOf 적용):**
+```turtle
+:홍길동 :affiliatedWith :데이터공작소 .
+:홍길동 :relatedTo :데이터공작소 .
+```
+
+### 예제 3: Domain/Range 추론
+
+**입력:**
+```turtle
+:teaches rdfs:domain :Professor ;
+        rdfs:range :Course .
+
+:홍교수 :teaches :온톨로지개론 .
+```
+
+**추론:**
+
+**rdfs2 (domain):**
+```turtle
+:홍교수 a :Professor .
+```
+
+**rdfs3 (range):**
+```turtle
+:온톨로지개론 a :Course .
+```
+
+---
+
+## 4. OWL 추론 규칙
+
+OWL은 RDFS보다 훨씬 강력한 추론을 제공합니다.
+
+### 1. Transitive Property
+
+**규칙:** A → B, B → C이면 A → C
+
+**예제:**
+```turtle
+:hasAncestor a owl:TransitiveProperty .
+
+# 명시적
+:홍길동 :hasAncestor :김아버지 .
+:김아버지 :hasAncestor :이할아버지 .
+:이할아버지 :hasAncestor :박증조할아버지 .
+
+# 추론
+:홍길동 :hasAncestor :이할아버지 .
+:홍길동 :hasAncestor :박증조할아버지 .
+:김아버지 :hasAncestor :박증조할아버지 .
+```
+
+**추론 체인:**
+```
+홍길동 → 김아버지 → 이할아버지 → 박증조할아버지
+       └─────────┘  (추론)
+       └────────────────────┘  (추론)
+                └─────────────┘  (추론)
+```
+
+### 2. Symmetric Property
+
+**규칙:** A → B이면 B → A
+
+**예제:**
+```turtle
+:friendOf a owl:SymmetricProperty .
+
+# 명시적
+:홍길동 :friendOf :김철수 .
+:김철수 :friendOf :이영희 .
+
+# 추론
+:김철수 :friendOf :홍길동 .
+:이영희 :friendOf :김철수 .
+```
+
+### 3. Inverse Property
+
+**규칙:** P의 역은 Q
+
+**예제:**
+```turtle
+:hasChild owl:inverseOf :hasParent .
+
+# 명시적
+:홍길동 :hasChild :홍아들 .
+
+# 추론
+:홍아들 :hasParent :홍길동 .
+```
+
+**양방향 추론:**
+```turtle
+# 반대로도 가능
+:김철수 :hasParent :김아버지 .
+# → 추론: :김아버지 :hasChild :김철수 .
+```
+
+### 4. Functional Property
+
+**규칙:** X가 Y1, Y2를 가지면 Y1 = Y2
+
+**예제:**
+```turtle
+:hasBiologicalMother a owl:FunctionalProperty .
+
+# 명시적
+:홍길동 :hasBiologicalMother :김어머니 .
+:홍길동 :hasBiologicalMother :이어머니 .
+
+# 추론
+:김어머니 owl:sameAs :이어머니 .
+```
+
+### 5. Inverse Functional Property
+
+**규칙:** Y가 X1, X2의 값이면 X1 = X2
+
+**예제:**
+```turtle
+:hasSSN a owl:InverseFunctionalProperty .
+
+# 명시적
+:홍길동 :hasSSN "123-45-6789" .
+:John :hasSSN "123-45-6789" .
+
+# 추론
+:홍길동 owl:sameAs :John .
+```
+
+### 6. Class Equivalence
+
+**예제:**
+```turtle
+:FemaleCEO owl:equivalentClass [
+    owl:intersectionOf (:CEO :Female)
+] .
+
+# 명시적
+:김대표 a :CEO , :Female .
+
+# 추론
+:김대표 a :FemaleCEO .
+
+# 역방향도 가능
+:이대표 a :FemaleCEO .
+# → 추론: :이대표 a :CEO , :Female .
+```
+
+### 7. Property Chain
+
+**예제:**
+```turtle
+:hasUncle owl:propertyChainAxiom (
+    :hasParent :hasBrother
+) .
+
+# 명시적
+:홍길동 :hasParent :김아버지 .
+:김아버지 :hasBrother :김삼촌 .
+
+# 추론
+:홍길동 :hasUncle :김삼촌 .
+```
+
+### 8. someValuesFrom 추론
+
+**예제:**
+```turtle
+:Parent owl:equivalentClass [
+    owl:onProperty :hasChild ;
+    owl:someValuesFrom :Person
+] .
+
+# 명시적
+:홍길동 :hasChild :홍아들 .
+:홍아들 a :Person .
+
+# 추론
+:홍길동 a :Parent .
+```
+
+### 9. allValuesFrom 추론
+
+**예제:**
+```turtle
+:VegetarianRestaurant rdfs:subClassOf [
+    owl:onProperty :servesFood ;
+    owl:allValuesFrom :VegetarianFood
+] .
+
+# 명시적
+:채식당 a :VegetarianRestaurant .
+:채식당 :servesFood :김치 .
+
+# 추론
+:김치 a :VegetarianFood .
+```
+
+### 10. Cardinality 추론
+
+**예제:**
+```turtle
+:Person rdfs:subClassOf [
+    owl:onProperty :hasBiologicalMother ;
+    owl:cardinality 1
+] .
+
+# 명시적
+:홍길동 a :Person .
+
+# 추론
+:홍길동 :hasBiologicalMother ?mother .  # 정확히 1개 존재
+```
+
+### 복합 추론 예제
+
+**시나리오:**
+```turtle
+# 온톨로지
+:hasAncestor a owl:TransitiveProperty .
+:hasChild owl:inverseOf :hasParent .
+:hasParent rdfs:subPropertyOf :hasAncestor .
+
+# 데이터
+:홍길동 :hasChild :홍아들 .
+:홍아들 :hasChild :홍손자 .
+
+# 추론 과정:
+# 1. Inverse: :홍아들 :hasParent :홍길동 .
+# 2. Inverse: :홍손자 :hasParent :홍아들 .
+# 3. SubProperty: :홍아들 :hasAncestor :홍길동 .
+# 4. SubProperty: :홍손자 :hasAncestor :홍아들 .
+# 5. Transitive: :홍손자 :hasAncestor :홍길동 .
+
+# 최종 결과
+:홍손자 :hasAncestor :홍길동 .  ✅
+```
+
+---
+
+## 5. 4가지 Reasoner 비교
+
+### Reasoner란?
+
+**Reasoner**는 온톨로지에서 추론을 수행하는 소프트웨어입니다.
+
+### 1. Pellet
+
+**개발:** Clark & Parsia (2003)
+**기반:** Tableau Algorithm
+**지원:** OWL 2 DL
+
+**특징:**
+- ✅ OWL 2 완전 지원
+- ✅ Incremental reasoning
+- ✅ 설명 생성 (Explanation)
+- ⚠️ 대규모 온톨로지에서 느림
+
+**사용 사례:**
+```java
+// Pellet 예제
+OntModel model = ModelFactory.createOntologyModel(
+    PelletReasonerFactory.THE_SPEC
+);
+model.read("ontology.owl");
+model.prepare();  // 추론 실행
+```
+
+**장점:**
+- 복잡한 OWL 구문 지원
+- 설명 기능 우수 (디버깅)
+
+**단점:**
+- 느린 추론 속도
+- 메모리 사용량 많음
+
+### 2. HermiT
+
+**개발:** Oxford University (2008)
+**기반:** Hypertableau Algorithm
+**지원:** OWL 2 DL
+
+**특징:**
+- ✅ 최초의 완전한 OWL 2 reasoner
+- ✅ 일관성 검사 빠름
+- ✅ 불일치 탐지 우수
+- ⚠️ 분류(Classification) 느림
+
+**사용 사례:**
+```java
+// HermiT 예제
+OWLReasonerFactory reasonerFactory =
+    new ReasonerFactory();
+OWLReasoner reasoner =
+    reasonerFactory.createReasoner(ontology);
+
+boolean consistent = reasoner.isConsistent();
+```
+
+**장점:**
+- OWL 2 완전 지원
+- 정확한 추론
+
+**단점:**
+- 추론 속도 매우 느림
+- 대규모 온톨로지 부적합
+
+### 3. FaCT++
+
+**개발:** University of Manchester (2003)
+**기반:** C++ Optimized Tableau
+**지원:** OWL 2 DL
+
+**특징:**
+- ✅ C++로 작성 (빠름)
+- ✅ 분류 속도 우수
+- ✅ 메모리 효율적
+- ⚠️ Java 통합 복잡
+
+**장점:**
+- 빠른 속도
+- 안정성
+
+**단점:**
+- C++ 의존성
+- 설치 복잡
+
+### 4. ELK
+
+**개발:** 2011
+**기반:** Consequence-based Algorithm
+**지원:** OWL 2 EL
+
+**특징:**
+- ✅ 매우 빠른 속도 (다항 시간)
+- ✅ 대규모 온톨로지 지원
+- ✅ SNOMED CT 추천 reasoner
+- ⚠️ OWL EL만 지원 (제한적)
+
+**성능:**
+```
+SNOMED CT (350,000+ 개념):
+- Pellet: 수 시간
+- HermiT: 수 시간
+- FaCT++: 수십 분
+- ELK: 수 초! ⚡
+```
+
+**사용 사례:**
+- 의료 온톨로지 (SNOMED CT)
+- Gene Ontology
+- 대규모 계층 구조
+
+### Reasoner 비교표
+
+| Reasoner | 속도 | 표현력 | 메모리 | 대규모 | 추천 |
+|----------|------|--------|--------|--------|------|
+| **Pellet** | 느림 | OWL 2 DL | 많음 | ❌ | 복잡한 온톨로지 |
+| **HermiT** | 매우 느림 | OWL 2 DL | 많음 | ❌ | 정확성 중요 |
+| **FaCT++** | 빠름 | OWL 2 DL | 중간 | ⚠️ | 일반 용도 |
+| **ELK** | 매우 빠름 | OWL EL | 적음 | ✅ | 대규모 계층 |
+
+### 선택 가이드
+
+```
+대규모 (100,000+ 개념) → ELK
+복잡한 OWL 구문 필요 → Pellet
+일반 용도 → FaCT++
+디버깅/설명 필요 → Pellet
+정확성 최우선 → HermiT
+```
+
+---
+
+## 6. OWA, CWA, UNA
+
+### Open World Assumption (OWA)
+
+**정의:** "명시되지 않은 것 ≠ 거짓"
+
+RDF/OWL은 OWA를 사용합니다.
+
+**예제:**
+```turtle
+:홍길동 a :Person .
+# :홍길동 :hasEmail ?email 없음
+```
+
+**질문:** "홍길동은 이메일이 없나?"
+
+**OWA 답변:** "모른다" (명시되지 않음)
+- 있을 수도 있음
+- 없을 수도 있음
+
+**SQL/DB (CWA) 답변:** "없다" (테이블에 없으면 없는 것)
+
+### Closed World Assumption (CWA)
+
+**정의:** "명시되지 않은 것 = 거짓"
+
+관계형 DB는 CWA를 사용합니다.
+
+**예제:**
+```sql
+-- Person 테이블
+| id | name   | email |
+|----|--------|-------|
+| 1  | 홍길동 | NULL  |
+
+-- SQL 쿼리
+SELECT * FROM Person WHERE email IS NULL;
+-- 결과: 홍길동 (이메일 없음!)
+```
+
+### OWA vs CWA 비교
+
+| 특징 | OWA (RDF/OWL) | CWA (SQL/DB) |
+|------|---------------|--------------|
+| 명시 없음 | 모름 (Unknown) | 거짓 (False) |
+| 확장성 | 높음 | 낮음 |
+| 분산 데이터 | 적합 | 부적합 |
+| 불완전 정보 | 허용 | 불허 |
+
+### Unique Name Assumption (UNA)
+
+**정의:** "다른 이름 = 다른 개체"
+
+**SQL은 UNA 사용:**
+```sql
+-- id=1과 id=2는 항상 다른 사람
+```
+
+**OWL은 UNA 미사용:**
+```turtle
+:홍길동 :hasSSN "123-45-6789" .
+:John :hasSSN "123-45-6789" .
+:hasSSN a owl:InverseFunctionalProperty .
+
+# 추론: :홍길동 owl:sameAs :John .
+# → 같은 사람!
+```
+
+### Non-Unique Name Assumption (NUNA)
+
+OWL은 **NUNA**를 사용합니다.
+
+**장점:**
+- 여러 이름으로 같은 개체 표현
+- 데이터 통합 용이
+
+**단점:**
+- 중복 확인 필요
+- owl:sameAs 추론 필요
+
+### OWA의 실무적 의미
+
+**1. 쿼리 작성 시:**
+```sparql
+# ❌ 나쁜 예
+SELECT ?person WHERE {
+    ?person a :Person .
+    FILTER NOT EXISTS {
+        ?person :hasEmail ?email .
+    }
+}
+# "이메일 없는 사람"이 아니라
+# "이메일이 명시되지 않은 사람"
+
+# ✅ 좋은 예
+SELECT ?person WHERE {
+    ?person a :Person .
+    ?person :hasEmail "none"^^xsd:string .
+}
+# 명시적으로 "none" 값 사용
+```
+
+**2. 온톨로지 설계 시:**
+```turtle
+# 명시적으로 "없음"을 표현
+:Person rdfs:subClassOf [
+    owl:onProperty :hasEmail ;
+    owl:minCardinality 0  # 0개 이상 (생략 가능)
+] .
+```
+
+---
+
+## 7. 추론 성능과 한계
+
+### 추론의 계산 복잡도
+
+| 언어 | 복잡도 | 의미 |
+|------|--------|------|
+| **RDFS** | P | 다항 시간 (빠름) |
+| **OWL EL** | P | 다항 시간 (빠름) |
+| **OWL QL** | AC0 | 매우 빠름 |
+| **OWL RL** | P | 다항 시간 (빠름) |
+| **OWL DL** | N2EXPTIME | 매우 느림 |
+| **OWL Full** | Undecidable | 결정불가능 |
+
+### 성능 한계
+
+**예제: 대규모 온톨로지**
+
+```
+SNOMED CT (350,000 개념):
+- RDFS: 수 초
+- OWL EL: 수 초 (ELK)
+- OWL DL: 수 시간 (Pellet)
+```
+
+### 추론 최적화 전략
+
+**1. 적절한 언어 선택**
+```
+간단한 계층 → RDFS
+대규모 계층 → OWL EL
+복잡한 제약 → OWL DL (필요시만)
+```
+
+**2. Materialization**
+- 추론 결과를 미리 계산하여 저장
+- 쿼리 속도 ↑, 업데이트 속도 ↓
+
+**3. Incremental Reasoning**
+- 전체 재계산 대신 변경분만 추론
+- Pellet, Jena 지원
+
+**4. 병렬 처리**
+- 대규모 온톨로지를 분할하여 병렬 추론
+
+### 추론 불가능한 것들
+
+**1. 수치 계산**
+```turtle
+# ❌ 불가능
+:홍길동 :age 45 .
+:김철수 :age 30 .
+# → :홍길동 :olderThan :김철수 . (추론 불가)
+
+# ✅ 해결: SPARQL FILTER
+SELECT ?older ?younger WHERE {
+    ?older :age ?age1 .
+    ?younger :age ?age2 .
+    FILTER(?age1 > ?age2)
+}
+```
+
+**2. 복잡한 문자열 처리**
+```turtle
+# ❌ 불가능
+:홍길동 :name "홍길동" .
+# → :홍길동 :lastName "홍" . (추론 불가)
+
+# ✅ 해결: SPARQL BIND
+SELECT ?person ?lastName WHERE {
+    ?person :name ?name .
+    BIND(SUBSTR(?name, 1, 1) AS ?lastName)
+}
+```
+
+**3. 시간 추론**
+```turtle
+# ❌ 불가능
+:프로젝트 :startDate "2025-01-01" ;
+         :duration "P6M" .
+# → :프로젝트 :endDate "2025-07-01" . (추론 불가)
+
+# ✅ 해결: 프로그래밍 또는 SPARQL 함수
+```
+
+---
+
+## 8. Protégé 완전 가이드
+
+### Protégé란?
+
+**Protégé**는 스탠포드 대학에서 개발한 무료 온톨로지 편집기입니다.
+
+**다운로드:** https://protege.stanford.edu/
+
+### 설치
+
+**1. Java 설치 (필수)**
+- Java 11 이상
+
+**2. Protégé 다운로드**
+- Windows: protege-5.6.x-win.zip
+- Mac: protege-5.6.x-mac.zip
+- Linux: protege-5.6.x-linux.tar.gz
+
+**3. 실행**
+- Windows: Protégé.exe
+- Mac/Linux: ./Protégé.sh
+
+### 기본 사용법
+
+**1. 새 온톨로지 생성**
+```
+File → New
+
+IRI 설정:
+http://example.org/library-ontology
+```
+
+**2. 클래스 생성**
+```
+Entities → Classes → Add subclass
+
+예제:
+Thing
+  ├─ Person
+  │   ├─ Author
+  │   └─ Member
+  ├─ Book
+  └─ Library
+```
+
+**3. 프로퍼티 생성**
+```
+Entities → Object Properties → Add property
+
+예제:
+- writtenBy (domain: Book, range: Author)
+- borrows (domain: Member, range: Book)
+```
+
+**4. 개체 생성**
+```
+Entities → Individuals → Add individual
+
+예제:
+- 김영하 (type: Author)
+- 빛의제국 (type: Book)
+```
+
+**5. 관계 설정**
+```
+Individuals → 빛의제국 → Object property assertions
+→ writtenBy → 김영하
+```
+
+### Reasoner 연결
+
+**1. Reasoner 선택**
+```
+Reasoner → FaCT++ (또는 HermiT, Pellet)
+```
+
+**2. 추론 시작**
+```
+Reasoner → Start reasoner
+```
+
+**3. 추론 결과 확인**
+```
+Reasoner → Synchronize reasoner
+
+추론된 계층:
+Thing
+  ├─ Person (inferred)
+  │   ├─ Author (inferred)
+  │   └─ Member (inferred)
+```
+
+**4. 불일치 확인**
+```
+Reasoner → Explain inconsistencies
+```
+
+### 고급 기능
+
+**1. 제약 조건 추가**
+```
+Classes → Book → Description → Equivalent To
+→ hasAuthor min 1 Author
+```
+
+**2. Disjoint Classes**
+```
+Classes → Book → Disjoint With → Magazine
+```
+
+**3. Property Characteristics**
+```
+Object Properties → hasAncestor
+→ Characteristics
+  ✅ Transitive
+```
+
+**4. Property Chains**
+```
+Object Properties → hasUncle
+→ Property chains
+  → hasParent o hasBrother
+```
+
+### 플러그인
+
+**유용한 플러그인:**
+
+**1. OntoGraf**
+- 그래프 시각화
+- View → OntoGraf
+
+**2. SPARQL Query**
+- Protégé 내에서 SPARQL 실행
+
+**3. Cellfie**
+- Excel → OWL 변환
+
+---
+
+## 9. Python: rdflib
+
+### rdflib 소개
+
+**rdflib**는 Python용 RDF 라이브러리입니다.
+
+### 설치
+
+```bash
+pip install rdflib --break-system-packages
+```
+
+### 기본 사용법
+
+**1. 그래프 생성**
+```python
+from rdflib import Graph, Namespace, Literal, URIRef
+from rdflib.namespace import RDF, RDFS, OWL, XSD
+
+# 그래프 생성
+g = Graph()
+
+# 네임스페이스
+EX = Namespace("http://example.org/")
+g.bind("ex", EX)
+```
+
+**2. Triple 추가**
+```python
+# 클래스 정의
+g.add((EX.Person, RDF.type, RDFS.Class))
+g.add((EX.CEO, RDFS.subClassOf, EX.Person))
+
+# 개체 추가
+g.add((EX.홍길동, RDF.type, EX.CEO))
+g.add((EX.홍길동, EX.name, Literal("홍길동", lang="ko")))
+g.add((EX.홍길동, EX.age, Literal(45, datatype=XSD.integer)))
+```
+
+**3. 파일 저장/로드**
+```python
+# 저장
+g.serialize(destination="ontology.ttl", format="turtle")
+
+# 로드
+g.parse("ontology.ttl", format="turtle")
+```
+
+**4. 쿼리 (SPARQL)**
+```python
+query = """
+    PREFIX ex: <http://example.org/>
+    SELECT ?person ?name ?age
+    WHERE {
+        ?person a ex:CEO ;
+                ex:name ?name ;
+                ex:age ?age .
+        FILTER(?age >= 30)
+    }
+"""
+
+results = g.query(query)
+for row in results:
+    print(f"{row.name}: {row.age}")
+```
+
+**5. Triple 순회**
+```python
+# 모든 Triple
+for s, p, o in g:
+    print(f"{s} {p} {o}")
+
+# 특정 패턴
+for person in g.subjects(RDF.type, EX.Person):
+    print(person)
+```
+
+### 추론 (Owlready2)
+
+rdflib는 기본 추론 기능이 제한적입니다.
+강력한 추론을 위해서는 **Owlready2** 사용:
+
+```bash
+pip install owlready2 --break-system-packages
+```
+
+```python
+from owlready2 import *
+
+# 온톨로지 로드
+onto = get_ontology("http://example.org/onto.owl").load()
+
+# 추론 실행
+with onto:
+    sync_reasoner(reasoner="Pellet")  # 또는 "HermiT"
+
+# 추론 결과 확인
+print(list(onto.CEO.instances()))
+```
+
+### 실전 예제
+
+```python
+from rdflib import Graph, Namespace, Literal
+from rdflib.namespace import RDF, RDFS
+
+# 그래프 생성
+g = Graph()
+EX = Namespace("http://company.example.org/")
+
+# 온톨로지
+g.add((EX.CEO, RDFS.subClassOf, EX.Employee))
+g.add((EX.Employee, RDFS.subClassOf, EX.Person))
+
+# 데이터
+g.add((EX.홍길동, RDF.type, EX.CEO))
+
+# 쿼리
+query = """
+    PREFIX ex: <http://company.example.org/>
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+    SELECT ?person ?type
+    WHERE {
+        ?person a ex:CEO .
+        ?class rdfs:subClassOf* ex:Person .
+        ?person a ?class .
+        BIND(?class AS ?type)
+    }
+"""
+
+for row in g.query(query):
+    print(row)
+```
+
+---
+
+## 10. Java: Apache Jena
+
+### Apache Jena 소개
+
+**Jena**는 Java용 RDF 프레임워크입니다.
+
+### Maven 의존성
+
+```xml
+<dependency>
+    <groupId>org.apache.jena</groupId>
+    <artifactId>jena-core</artifactId>
+    <version>4.10.0</version>
+</dependency>
+<dependency>
+    <groupId>org.apache.jena</groupId>
+    <artifactId>jena-arq</artifactId>
+    <version>4.10.0</version>
+</dependency>
+```
+
+### 기본 사용법
+
+**1. 모델 생성**
+```java
+import org.apache.jena.rdf.model.*;
+import org.apache.jena.vocabulary.*;
+
+// 모델 생성
+Model model = ModelFactory.createDefaultModel();
+
+// 네임스페이스
+String ns = "http://example.org/";
+```
+
+**2. Triple 추가**
+```java
+// 리소스 생성
+Resource person = model.createResource(ns + "홍길동");
+Resource ceo = model.createResource(ns + "CEO");
+
+// 프로퍼티
+Property type = RDF.type;
+Property name = model.createProperty(ns + "name");
+Property age = model.createProperty(ns + "age");
+
+// Triple 추가
+person.addProperty(type, ceo);
+person.addProperty(name, "홍길동", "ko");
+person.addProperty(age, model.createTypedLiteral(45));
+```
+
+**3. 파일 저장/로드**
+```java
+// 저장
+try (FileOutputStream out = new FileOutputStream("onto.ttl")) {
+    model.write(out, "TTL");
+}
+
+// 로드
+model.read("onto.ttl", "TTL");
+```
+
+**4. 쿼리 (SPARQL)**
+```java
+import org.apache.jena.query.*;
+
+String queryString = """
+    PREFIX ex: <http://example.org/>
+    SELECT ?person ?name ?age
+    WHERE {
+        ?person a ex:CEO ;
+                ex:name ?name ;
+                ex:age ?age .
+    }
+    """;
+
+Query query = QueryFactory.create(queryString);
+try (QueryExecution qexec = QueryExecutionFactory.create(query, model)) {
+    ResultSet results = qexec.execSelect();
+    while (results.hasNext()) {
+        QuerySolution soln = results.nextSolution();
+        System.out.println(soln.get("name"));
+    }
+}
+```
+
+**5. 추론**
+```java
+import org.apache.jena.reasoner.*;
+import org.apache.jena.reasoner.rulesys.*;
+
+// RDFS Reasoner
+Reasoner reasoner = ReasonerRegistry.getRDFSReasoner();
+InfModel inf = ModelFactory.createInfModel(reasoner, model);
+
+// OWL Reasoner
+Reasoner owlReasoner = ReasonerRegistry.getOWLReasoner();
+InfModel owlInf = ModelFactory.createInfModel(owlReasoner, model);
+
+// 추론 결과 확인
+StmtIterator iter = inf.listStatements(null, RDF.type, (RDFNode)null);
+while (iter.hasNext()) {
+    System.out.println(iter.nextStatement());
+}
+```
+
+### Pellet과 통합
+
+```java
+import org.mindswap.pellet.jena.PelletReasonerFactory;
+
+// Pellet Reasoner
+OntModel model = ModelFactory.createOntologyModel(
+    PelletReasonerFactory.THE_SPEC
+);
+
+model.read("ontology.owl");
+
+// 추론 실행
+model.prepare();
+
+// 불일치 확인
+if (!model.validate().isValid()) {
+    System.out.println("Ontology is inconsistent!");
+}
+```
+
+---
+
+## 11. Triple Store 비교
+
+### Triple Store란?
+
+**Triple Store**는 RDF 데이터를 저장하고 쿼리하는 데이터베이스입니다.
+
+### 1. GraphDB
+
+**개발:** Ontotext
+**라이선스:** 상용 + 무료 (제한)
+
+**특징:**
+- ✅ 빠른 추론 (OWL RL)
+- ✅ Full-text 검색
+- ✅ 시각화 도구
+- ✅ GeoSPARQL
+
+**성능:**
+- 10억+ Triple 지원
+- 실시간 추론
+
+**가격:**
+- Free: 1억 Triple
+- Standard: $150/월
+- Enterprise: 협의
+
+### 2. Apache Jena Fuseki
+
+**라이선스:** Apache (무료)
+
+**특징:**
+- ✅ 완전 무료
+- ✅ SPARQL 1.1 Update
+- ✅ TDB2 (빠른 저장소)
+- ⚠️ 추론 제한적
+
+**사용:**
+```bash
+# 다운로드
+wget https://dlcdn.apache.org/jena/binaries/apache-jena-fuseki-4.10.0.tar.gz
+
+# 실행
+./fuseki-server --mem /ds
+```
+
+### 3. Virtuoso
+
+**개발:** OpenLink Software
+**라이선스:** 상용 + 오픈소스
+
+**특징:**
+- ✅ 매우 빠름
+- ✅ SQL 통합
+- ✅ 대규모 데이터
+- ⚠️ 설치 복잡
+
+**규모:**
+- DBpedia 사용
+- 150억+ Triple
+
+### 4. Blazegraph
+
+**라이선스:** GPL (무료)
+
+**특징:**
+- ✅ 고성능
+- ✅ GPU 가속
+- ✅ GeoSPARQL
+- ⚠️ 개발 중단 (2020)
+
+**사용:**
+- Wikidata 사용 (2016-2020)
+
+### 비교표
+
+| Triple Store | 속도 | 추론 | 확장성 | 가격 | 추천 |
+|--------------|------|------|--------|------|------|
+| **GraphDB** | ⭐⭐⭐⭐ | OWL RL | 10억 | 💰💰 | 상용 |
+| **Fuseki** | ⭐⭐⭐ | 제한적 | 1억 | 무료 | 개발/소규모 |
+| **Virtuoso** | ⭐⭐⭐⭐⭐ | 제한적 | 150억 | 💰💰💰 | 대규모 |
+| **Blazegraph** | ⭐⭐⭐⭐ | RDFS | 50억 | 무료 | 레거시 |
+
+---
+
+## 12. 실습: Reasoning Engine
+
+### 🎮 Reasoning Engine 열기
+
+URL: https://kss.ai.kr/modules/ontology/simulators/inference-engine
+
+### 실습 1: Transitive Property
+
+**온톨로지:**
+```turtle
+:hasAncestor a owl:TransitiveProperty .
+```
+
+**데이터:**
+```turtle
+:홍길동 :hasAncestor :김아버지 .
+:김아버지 :hasAncestor :이할아버지 .
+```
+
+**추론 결과:**
+```turtle
+:홍길동 :hasAncestor :이할아버지 .  ✅
+```
+
+**시뮬레이터에서:**
+1. Transitive 규칙 선택
+2. 데이터 입력
+3. "Run Inference" 클릭
+4. 추론 체인 시각화 확인
+
+### 실습 2: Symmetric Property
+
+**온톨로지:**
+```turtle
+:friendOf a owl:SymmetricProperty .
+```
+
+**데이터:**
+```turtle
+:홍길동 :friendOf :김철수 .
+```
+
+**추론:**
+```turtle
+:김철수 :friendOf :홍길동 .  ✅
+```
+
+### 실습 3: Inverse Property
+
+**온톨로지:**
+```turtle
+:hasChild owl:inverseOf :hasParent .
+```
+
+**데이터:**
+```turtle
+:홍길동 :hasChild :홍아들 .
+```
+
+**추론:**
+```turtle
+:홍아들 :hasParent :홍길동 .  ✅
+```
+
+### 실습 4: Type Inference
+
+**온톨로지:**
+```turtle
+:CEO rdfs:subClassOf :Employee .
+:Employee rdfs:subClassOf :Person .
+```
+
+**데이터:**
+```turtle
+:홍길동 a :CEO .
+```
+
+**추론:**
+```turtle
+:홍길동 a :Employee .  ✅
+:홍길동 a :Person .    ✅
+```
+
+---
+
+## 13. 실전 프로젝트
+
+### 프로젝트: 가계도 온톨로지
+
+**목표:** 가족 관계를 표현하고 추론하는 온톨로지 구축
+
+**Step 1: 온톨로지 설계**
+```turtle
+@prefix : <http://family.example.org/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+# 클래스
+:Person a owl:Class .
+:Male rdfs:subClassOf :Person .
+:Female rdfs:subClassOf :Person .
+
+# 프로퍼티
+:hasParent a owl:ObjectProperty ;
+    rdfs:domain :Person ;
+    rdfs:range :Person ;
+    rdfs:subPropertyOf :hasAncestor .
+
+:hasAncestor a owl:TransitiveProperty .
+
+:hasChild owl:inverseOf :hasParent .
+
+:hasSibling a owl:SymmetricProperty .
+
+# 추론 규칙
+:hasGrandparent owl:propertyChainAxiom (
+    :hasParent :hasParent
+) .
+
+:hasUncle owl:propertyChainAxiom (
+    :hasParent :hasBrother
+) .
+```
+
+**Step 2: 데이터 입력**
+```turtle
+# 3대
+:할아버지 a :Male .
+:할머니 a :Female .
+
+:아버지 a :Male ;
+    :hasParent :할아버지 , :할머니 .
+
+:삼촌 a :Male ;
+    :hasParent :할아버지 , :할머니 .
+
+:아버지 :hasSibling :삼촌 .
+
+:나 a :Male ;
+    :hasParent :아버지 .
+```
+
+**Step 3: 추론 결과**
+```turtle
+# 자동 추론:
+:나 :hasGrandparent :할아버지 , :할머니 .
+:나 :hasUncle :삼촌 .
+:나 :hasAncestor :할아버지 , :할머니 , :아버지 .
+
+:할아버지 :hasChild :아버지 , :삼촌 .
+:아버지 :hasChild :나 .
+```
+
+**Step 4: Protégé에서 구현**
+1. Protégé 열기
+2. 클래스/프로퍼티 정의
+3. Reasoner 실행 (FaCT++)
+4. 추론 결과 확인
+
+---
+
+## 14. 요약과 다음 단계
+
+### 핵심 정리
+
+**1. 추론 (Reasoning)**
+- 명시적 → 암묵적 지식 도출
+- Deduction (연역)
+- Forward vs Backward Chaining
+
+**2. RDFS vs OWL 추론**
+- RDFS: 11가지 규칙 (간단)
+- OWL: 복잡한 규칙 (강력)
+
+**3. 4가지 Reasoner**
+- Pellet: OWL 2 DL, 설명
+- HermiT: 정확성
+- FaCT++: 속도
+- ELK: 대규모 (OWL EL)
+
+**4. OWA, CWA, UNA**
+- OWA: 명시 없음 = 모름
+- CWA: 명시 없음 = 거짓
+- UNA: 다른 이름 = 다른 개체
+
+**5. 도구**
+- **Protégé:** GUI 편집기
+- **rdflib:** Python
+- **Jena:** Java
+- **Triple Store:** GraphDB, Fuseki
+
+**6. 추론 한계**
+- 계산 복잡도
+- 수치/문자열 처리 불가
+- 시간 계산 불가
+
+### 실전 체크리스트
+
+**온톨로지 개발 시:**
+- [ ] 적절한 언어 선택 (RDFS vs OWL)
+- [ ] Reasoner 선택 (규모, 복잡도 고려)
+- [ ] OWA 고려 (명시적 표현)
+- [ ] 추론 성능 테스트
+- [ ] 불일치 검사
+
+**Protégé 사용 시:**
+- [ ] Reasoner 연결
+- [ ] 추론 실행
+- [ ] 계층 확인
+- [ ] 불일치 확인
+- [ ] 설명 생성
+
+### 다음 챕터
+
+**Chapter 6: 의료 온톨로지**
+
+실전 프로젝트 시작!
+- SNOMED CT (350,000+ 개념)
+- FHIR 리소스
+- 질병-유전자-약물 관계
+- FDA 신약 승인
+- **3D Knowledge Graph로 시각화!**
+
+---
+
+## 📝 연습 문제
+
+### 문제 1: 추론 과정
+
+다음 온톨로지에서 추론되는 사실을 모두 쓰세요:
+
+```turtle
+:hasAncestor a owl:TransitiveProperty .
+:hasParent rdfs:subPropertyOf :hasAncestor .
+
+:홍길동 :hasParent :김아버지 .
+:김아버지 :hasParent :이할아버지 .
+```
+
+**정답:**
+```turtle
+# SubProperty 적용
+:홍길동 :hasAncestor :김아버지 .
+:김아버지 :hasAncestor :이할아버지 .
+
+# Transitive 적용
+:홍길동 :hasAncestor :이할아버지 .
+```
+
+### 문제 2: Reasoner 선택
+
+다음 상황에 적합한 Reasoner를 선택하세요:
+
+A. SNOMED CT (350,000 개념, 계층 구조)
+B. 복잡한 OWL 제약 (불일치 탐지 중요)
+C. 일반 온톨로지 (1,000 개념)
+
+**정답:**
+- A: ELK (대규모 계층)
+- B: HermiT (정확성)
+- C: FaCT++ (일반 용도)
+
+### 문제 3: OWA
+
+OWA에서 다음 쿼리의 결과는?
+
+```turtle
+:홍길동 a :Person .
+# :hasEmail 명시 없음
+
+SELECT ?person WHERE {
+    ?person a :Person .
+    FILTER NOT EXISTS {
+        ?person :hasEmail ?email .
+    }
+}
+```
+
+**정답:** :홍길동 포함 (이메일이 명시되지 않음 = 모름)
+
+---
+
+## 🔗 참고 자료
+
+### Reasoner
+1. Pellet: https://github.com/stardog-union/pellet
+2. HermiT: http://www.hermit-reasoner.com/
+3. FaCT++: http://owl.man.ac.uk/factplusplus/
+4. ELK: https://github.com/liveontologies/elk-reasoner
+
+### 도구
+1. Protégé: https://protege.stanford.edu/
+2. rdflib: https://rdflib.readthedocs.io/
+3. Apache Jena: https://jena.apache.org/
+4. Owlready2: https://owlready2.readthedocs.io/
+
+### Triple Store
+1. GraphDB: https://graphdb.ontotext.com/
+2. Fuseki: https://jena.apache.org/documentation/fuseki2/
+3. Virtuoso: https://virtuoso.openlinksw.com/
+
+---
+
+**다음:** [Chapter 6: 의료 온톨로지](./chapter-06.md)
