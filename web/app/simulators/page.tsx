@@ -1,8 +1,18 @@
+import type { Metadata } from 'next'
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Code, Database, Lightbulb, Network } from "lucide-react"
+
+export const metadata: Metadata = {
+  title: '시뮬레이터',
+  description: 'RDF 에디터, SPARQL 플레이그라운드, 추론 엔진, 3D 지식 그래프 등 인터랙티브 온톨로지 학습 도구',
+  openGraph: {
+    title: '시뮬레이터 | KSS Ontology',
+    description: '인터랙티브 온톨로지 학습 도구 모음',
+  },
+}
 
 const simulators = [
   {

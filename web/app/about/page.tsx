@@ -1,5 +1,15 @@
+import type { Metadata } from 'next'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+
+export const metadata: Metadata = {
+  title: '프로젝트 소개',
+  description: '세계 최초 한글 온톨로지 교육 플랫폼 KSS Ontology. 시맨틱 웹, 지식 그래프, AI의 미래를 함께 탐험하세요.',
+  openGraph: {
+    title: '프로젝트 소개 | KSS Ontology',
+    description: '세계 최초 한글 온톨로지 교육 플랫폼',
+  },
+}
 
 export default function AboutPage() {
   return (

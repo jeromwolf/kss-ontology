@@ -1,7 +1,17 @@
+import type { Metadata } from 'next'
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CHAPTERS, PART_TITLES, getDifficultyStars, getChaptersByPart } from "@/lib/chapters"
+
+export const metadata: Metadata = {
+  title: '온톨로지 교육 과정',
+  description: '10개 챕터, 61,200 단어로 구성된 세계에서 가장 깊이 있는 온톨로지 교육 콘텐츠. 시맨틱 웹, RDF, OWL, SPARQL을 단계별로 학습하세요.',
+  openGraph: {
+    title: '온톨로지 교육 과정 | KSS Ontology',
+    description: '10개 챕터로 구성된 체계적인 온톨로지 학습 과정',
+  },
+}
 
 export default function ChaptersPage() {
   const parts = [1, 2, 3]

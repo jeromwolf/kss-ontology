@@ -1,6 +1,16 @@
+import type { Metadata } from 'next'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle2, Circle, Clock } from "lucide-react"
+
+export const metadata: Metadata = {
+  title: '개발 로드맵',
+  description: 'KSS Ontology 프로젝트의 현재와 미래. v3.0부터 v5.0까지의 개발 계획과 새로운 기능을 확인하세요.',
+  openGraph: {
+    title: '개발 로드맵 | KSS Ontology',
+    description: 'KSS Ontology 프로젝트의 개발 계획과 로드맵',
+  },
+}
 
 export default function RoadmapPage() {
   return (
