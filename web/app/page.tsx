@@ -8,7 +8,7 @@ export default function HomePage() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="container flex flex-col items-center gap-8 py-24 md:py-32">
+      <section className="container flex flex-col items-center gap-6 py-16 md:py-24">
         <Badge variant="outline" className="px-4 py-1">
           Phase 1 완료: 10개 챕터, 61,200 단어
         </Badge>
@@ -37,8 +37,8 @@ export default function HomePage() {
 
       {/* Stats Section */}
       <section className="border-y bg-muted/50">
-        <div className="container py-12">
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
+        <div className="container py-10">
+          <div className="grid grid-cols-2 gap-6 md:grid-cols-5 md:gap-8">
             <div className="text-center">
               <div className="text-4xl font-bold">{siteConfig.stats.chapters}</div>
               <div className="mt-2 text-sm text-muted-foreground">챕터</div>
@@ -64,8 +64,8 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="container py-24">
-        <div className="text-center mb-12">
+      <section className="container py-16 md:py-20">
+        <div className="text-center mb-10">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
             왜 KSS Ontology인가?
           </h2>
@@ -151,7 +151,7 @@ export default function HomePage() {
 
       {/* CTA Section */}
       <section className="border-t bg-muted/50">
-        <div className="container py-24">
+        <div className="container py-16 md:py-20">
           <div className="flex flex-col items-center gap-6 text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
               지금 바로 시작하세요

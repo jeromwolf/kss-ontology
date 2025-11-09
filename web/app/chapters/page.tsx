@@ -17,8 +17,8 @@ export default function ChaptersPage() {
   const parts = [1, 2, 3]
 
   return (
-    <div className="container py-12">
-      <div className="mb-12 text-center">
+    <div className="container py-8 md:py-12">
+      <div className="mb-8 md:mb-10 text-center">
         <h1 className="text-4xl font-bold mb-4">온톨로지 교육 과정</h1>
         <p className="text-lg text-muted-foreground max-w-[750px] mx-auto">
           10개 챕터, 61,200 단어로 구성된 세계에서 가장 깊이 있는 온톨로지 교육 콘텐츠
@@ -28,9 +28,9 @@ export default function ChaptersPage() {
       {parts.map((part) => {
         const chapters = getChaptersByPart(part)
         return (
-          <section key={part} className="mb-12">
-            <h2 className="text-2xl font-bold mb-6">{PART_TITLES[part as 1 | 2 | 3]}</h2>
-            <div className="grid gap-6 md:grid-cols-2">
+          <section key={part} className="mb-10 md:mb-12">
+            <h2 className="text-2xl font-bold mb-4 md:mb-6">{PART_TITLES[part as 1 | 2 | 3]}</h2>
+            <div className="grid gap-4 md:gap-6 md:grid-cols-2">
               {chapters.map((chapter) => (
                 <Link
                   key={chapter.id}
