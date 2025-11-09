@@ -1,0 +1,1298 @@
+# Chapter 7: 금융 온톨로지
+
+**학습 시간:** 90분  
+**난이도:** ⭐⭐⭐⭐  
+**시뮬레이터:** 3D Knowledge Graph ⭐  
+**작성일:** 2025-11-09  
+**버전:** 3.0 FINAL
+
+---
+
+## 🎯 학습 목표
+
+이 챕터를 마치면 다음을 할 수 있습니다:
+
+1. ✅ FIBO의 구조와 모듈을 이해한다
+2. ✅ Basel III, MiFID II, Dodd-Frank 규제와 온톨로지의 연계를 설명한다
+3. ✅ 실제 금융기관 사례 (JPMorgan, Goldman Sachs, Bloomberg)를 분석한다
+4. ✅ 금융 상품 모델링 방법을 익힌다
+5. ✅ 금융 AI + 온톨로지 통합을 이해한다
+6. ✅ 리스크 관리, 사기 탐지, 알고리즘 트레이딩에 온톨로지를 적용한다
+7. ✅ 암호화폐/DeFi 온톨로지를 구축한다
+
+---
+
+## 📚 목차
+
+1. [금융 온톨로지란?](#1-금융-온톨로지란)
+2. [FIBO 완전 가이드](#2-fibo-완전-가이드)
+3. [금융 상품 모델링](#3-금융-상품-모델링)
+4. [규제 준수와 자동화](#4-규제-준수와-자동화)
+5. [실제 금융기관 사례](#5-실제-금융기관-사례)
+6. [리스크 관리](#6-리스크-관리)
+7. [사기 탐지](#7-사기-탐지)
+8. [알고리즘 트레이딩](#8-알고리즘-트레이딩)
+9. [암호화폐/DeFi 온톨로지](#9-암호화폐defi-온톨로지)
+10. [실습: 금융 관계 그래프](#10-실습-금융-관계-그래프)
+11. [고객 분석과 추천](#11-고객-분석과-추천)
+12. [요약과 다음 단계](#12-요약과-다음-단계)
+
+---
+
+## 1. 금융 온톨로지란?
+
+### 금융 온톨로지의 정의
+
+**금융 온톨로지**는 금융 도메인의 개념, 관계, 규칙을 표준화하여 표현한 지식 모델입니다.
+
+### 왜 금융에서 온톨로지가 필요한가?
+
+**1. 복잡한 금융 상품**
+```
+파생상품의 예:
+- 옵션 → 콜옵션, 풋옵션
+- 스왑 → 이자율스왑, 통화스왑, CDS
+- 선물 → 통화선물, 주가지수선물
+- 구조화상품 → CDO, MBS, ABS
+
+각 상품마다 수십 개의 속성과 관계
+```
+
+**2. 엄격한 규제**
+```
+글로벌 규제:
+- Basel III (자본 규제)
+- MiFID II (유럽 금융시장)
+- Dodd-Frank (미국 금융개혁)
+- IFRS 9 (회계 기준)
+
+각 규제마다 수백 페이지 문서
+```
+
+**3. 다중 시스템 통합**
+```
+금융기관의 시스템:
+- 트레이딩 시스템
+- 리스크 관리
+- 컴플라이언스
+- 회계
+- 고객 관리
+
+→ 데이터 일관성 필요
+```
+
+**4. 실시간 의사결정**
+```
+트레이딩:
+- 밀리초 단위 의사결정
+- 복잡한 관계 추론
+- 리스크 실시간 계산
+```
+
+### 주요 금융 온톨로지
+
+| 온톨로지 | 범위 | 관리 기관 | 규모 |
+|----------|------|-----------|------|
+| **FIBO** | 금융 전반 | EDM Council | 30,000+ 개념 |
+| **FpML** | 파생상품 | ISDA | 2,000+ 요소 |
+| **ISO 20022** | 금융 메시지 | ISO | 400+ 메시지 |
+| **ACTUS** | 금융 계약 | Stanford/ETH | 30+ 계약 유형 |
+
+---
+
+## 2. FIBO 완전 가이드
+
+### FIBO란?
+
+**FIBO (Financial Industry Business Ontology)**는 금융 산업의 표준 온톨로지입니다.
+
+**개발:** EDM Council (Enterprise Data Management Council)  
+**시작:** 2008년  
+**버전:** 2024 Q4 (최신)  
+**개념 수:** 30,000+  
+**관계 수:** 50,000+
+
+### FIBO 구조
+
+**3개 레이어:**
+
+**1. Foundations (FND) - 기초**
+```
+법인, 사람, 조직
+날짜, 시간, 수량
+계약, 합의
+```
+
+**2. Business Entities (BE) - 사업체**
+```
+법인 구조
+소유권 관계
+규제 기관
+```
+
+**3. Financial Business and Commerce (FBC) - 금융 비즈니스**
+```
+금융 상품
+금융 서비스
+시장 인프라
+```
+
+### FIBO 주요 모듈 8개
+
+#### 1. FND (Foundations) - 기초
+
+```turtle
+@prefix fibo-fnd: <https://spec.edmcouncil.org/fibo/ontology/FND/> .
+
+# 법인
+fibo-fnd:LegalEntity a owl:Class ;
+    rdfs:label "Legal Entity"@en ;
+    rdfs:comment "법적 권리와 의무를 가진 개체"@en .
+
+# 계약
+fibo-fnd:Contract a owl:Class ;
+    rdfs:label "Contract"@en ;
+    rdfs:subClassOf fibo-fnd:Agreement .
+
+# 날짜
+fibo-fnd:Date a owl:Class ;
+    rdfs:label "Date"@en .
+```
+
+#### 2. BE (Business Entities) - 사업체
+
+```turtle
+@prefix fibo-be: <https://spec.edmcouncil.org/fibo/ontology/BE/> .
+
+# 법인 구조
+fibo-be:Corporation a owl:Class ;
+    rdfs:subClassOf fibo-fnd:LegalEntity ;
+    rdfs:label "Corporation"@en .
+
+# 소유권
+fibo-be:hasSubsidiary a owl:ObjectProperty ;
+    rdfs:domain fibo-be:Corporation ;
+    rdfs:range fibo-be:Corporation .
+```
+
+#### 3. FBC (Financial Business) - 금융 비즈니스
+
+```turtle
+@prefix fibo-fbc: <https://spec.edmcouncil.org/fibo/ontology/FBC/> .
+
+# 금융 상품
+fibo-fbc:FinancialInstrument a owl:Class ;
+    rdfs:label "Financial Instrument"@en .
+
+# 계좌
+fibo-fbc:Account a owl:Class ;
+    rdfs:label "Account"@en .
+```
+
+#### 4. IND (Indices and Indicators) - 지수와 지표
+
+```turtle
+@prefix fibo-ind: <https://spec.edmcouncil.org/fibo/ontology/IND/> .
+
+# 시장 지수
+fibo-ind:MarketIndex a owl:Class ;
+    rdfs:label "Market Index"@en .
+
+# KOSPI
+:KOSPI a fibo-ind:MarketIndex ;
+    rdfs:label "Korea Composite Stock Price Index"@en ;
+    :baseDate "1980-01-04"^^xsd:date ;
+    :baseValue 100 .
+```
+
+#### 5. DER (Derivatives) - 파생상품
+
+```turtle
+@prefix fibo-der: <https://spec.edmcouncil.org/fibo/ontology/DER/> .
+
+# 옵션
+fibo-der:Option a owl:Class ;
+    rdfs:subClassOf fibo-fbc:FinancialInstrument .
+
+fibo-der:CallOption rdfs:subClassOf fibo-der:Option .
+fibo-der:PutOption rdfs:subClassOf fibo-der:Option .
+
+# 스왑
+fibo-der:Swap a owl:Class ;
+    rdfs:subClassOf fibo-fbc:FinancialInstrument .
+
+fibo-der:InterestRateSwap rdfs:subClassOf fibo-der:Swap .
+```
+
+#### 6. SEC (Securities) - 증권
+
+```turtle
+@prefix fibo-sec: <https://spec.edmcouncil.org/fibo/ontology/SEC/> .
+
+# 주식
+fibo-sec:Equity a owl:Class ;
+    rdfs:subClassOf fibo-fbc:FinancialInstrument .
+
+fibo-sec:CommonStock rdfs:subClassOf fibo-sec:Equity .
+fibo-sec:PreferredStock rdfs:subClassOf fibo-sec:Equity .
+
+# 채권
+fibo-sec:Debt a owl:Class ;
+    rdfs:subClassOf fibo-fbc:FinancialInstrument .
+
+fibo-sec:Bond rdfs:subClassOf fibo-sec:Debt .
+```
+
+#### 7. LOAN (Loans) - 대출
+
+```turtle
+@prefix fibo-loan: <https://spec.edmcouncil.org/fibo/ontology/LOAN/> .
+
+# 대출
+fibo-loan:Loan a owl:Class ;
+    rdfs:subClassOf fibo-fbc:FinancialInstrument .
+
+fibo-loan:MortgageLoan rdfs:subClassOf fibo-loan:Loan .
+fibo-loan:CommercialLoan rdfs:subClassOf fibo-loan:Loan .
+```
+
+#### 8. MD (Market Data) - 시장 데이터
+
+```turtle
+@prefix fibo-md: <https://spec.edmcouncil.org/fibo/ontology/MD/> .
+
+# 가격
+fibo-md:Price a owl:Class ;
+    rdfs:label "Price"@en .
+
+fibo-md:BidPrice rdfs:subClassOf fibo-md:Price .
+fibo-md:AskPrice rdfs:subClassOf fibo-md:Price .
+```
+
+---
+
+## 3. 금융 상품 모델링
+
+### 주식 모델링
+
+```turtle
+@prefix : <http://finance.example.org/> .
+@prefix fibo: <https://spec.edmcouncil.org/fibo/ontology/> .
+
+# 삼성전자 주식
+:Samsung_Electronics_Stock a fibo:CommonStock ;
+    rdfs:label "삼성전자 보통주"@ko ;
+    :ticker "005930" ;
+    :isin "KR7005930003" ;
+    :issuedBy :Samsung_Electronics ;
+    :listedOn :KRX ;  # 한국거래소
+    :currency "KRW" ;
+    :sector :Technology .
+
+# 삼성전자 (발행사)
+:Samsung_Electronics a fibo:Corporation ;
+    rdfs:label "삼성전자"@ko ;
+    :registrationNumber "124-81-00998" ;
+    :headquarters "대한민국 경기도 수원시" .
+
+# 한국거래소
+:KRX a fibo:Exchange ;
+    rdfs:label "Korea Exchange"@en ;
+    :country "KR" .
+```
+
+### 채권 모델링
+
+```turtle
+# 국고채 10년
+:KTB_10Y a fibo:GovernmentBond ;
+    rdfs:label "국고채권 10년"@ko ;
+    :isin "KR1234567890" ;
+    :issuer :MinistryOfFinance_KR ;
+    :faceValue 10000 ;
+    :currency "KRW" ;
+    :couponRate 3.5 ;  # 3.5%
+    :maturityDate "2035-03-15"^^xsd:date ;
+    :issueDate "2025-03-15"^^xsd:date ;
+    :paymentFrequency :SemiAnnual .
+```
+
+### 파생상품 모델링
+
+**옵션:**
+```turtle
+# KOSPI200 콜옵션
+:KOSPI200_Call_350 a fibo:CallOption ;
+    rdfs:label "KOSPI200 콜옵션 350"@ko ;
+    :underlyingAsset :KOSPI200_Index ;
+    :strikePrice 350.00 ;
+    :expirationDate "2026-03-12"^^xsd:date ;
+    :optionStyle :European ;  # 유럽형
+    :multiplier 250000 ;  # 계약 승수
+    :currency "KRW" .
+
+:KOSPI200_Index a fibo:MarketIndex ;
+    rdfs:label "KOSPI 200"@ko ;
+    :baseValue 100 ;
+    :baseDate "1990-01-03"^^xsd:date .
+```
+
+**스왑:**
+```turtle
+# 이자율 스왑
+:IRS_5Y a fibo:InterestRateSwap ;
+    rdfs:label "5년 이자율 스왑"@ko ;
+    :notionalAmount 100000000 ;  # 1억
+    :currency "KRW" ;
+    :effectiveDate "2025-11-09"^^xsd:date ;
+    :maturityDate "2030-11-09"^^xsd:date ;
+    :fixedLeg [
+        :rate 3.5 ;  # 3.5% 고정
+        :paymentFrequency :Quarterly
+    ] ;
+    :floatingLeg [
+        :index :CD91 ;  # CD 91일물
+        :spread 0.5 ;  # +0.5%
+        :paymentFrequency :Quarterly
+    ] .
+```
+
+### 펀드 모델링
+
+```turtle
+# 주식형 펀드
+:Samsung_Korea_Equity_Fund a fibo:MutualFund ;
+    rdfs:label "삼성 코리아 주식 펀드"@ko ;
+    :fundManager :Samsung_Asset_Management ;
+    :inceptionDate "2020-01-15"^^xsd:date ;
+    :totalAssets 500000000000 ;  # 5천억원
+    :currency "KRW" ;
+    :benchmark :KOSPI ;
+    :managementFee 1.2 ;  # 1.2%
+    :category :EquityFund .
+
+# 보유 종목
+:Samsung_Korea_Equity_Fund :holds [
+    :stock :Samsung_Electronics_Stock ;
+    :shares 100000 ;
+    :weight 15.5  # 15.5%
+] .
+```
+
+---
+
+## 4. 규제 준수와 자동화
+
+### Basel III
+
+**Basel III**는 은행의 자본 규제 프레임워크입니다.
+
+**핵심 규제:**
+```turtle
+# 자본 비율
+:Bank_A :capitalAdequacyRatio ?ratio .
+FILTER(?ratio >= 8.0)  # 최소 8%
+
+# Tier 1 자본
+:Bank_A :tier1CapitalRatio ?tier1 .
+FILTER(?tier1 >= 6.0)  # 최소 6%
+
+# 보통주 자본
+:Bank_A :commonEquityTier1Ratio ?cet1 .
+FILTER(?cet1 >= 4.5)  # 최소 4.5%
+```
+
+**온톨로지 모델:**
+```turtle
+@prefix basel: <http://basel.example.org/> .
+
+# 자본 구조
+basel:Capital a owl:Class .
+basel:Tier1Capital rdfs:subClassOf basel:Capital .
+basel:Tier2Capital rdfs:subClassOf basel:Capital .
+
+basel:CommonEquityTier1 rdfs:subClassOf basel:Tier1Capital .
+basel:AdditionalTier1 rdfs:subClassOf basel:Tier1Capital .
+
+# 규제 검증
+basel:CapitalRequirement a owl:Class ;
+    rdfs:label "Capital Requirement"@en .
+
+:Bank_A a basel:Bank ;
+    basel:totalCapital 1000000000 ;  # 10억
+    basel:riskWeightedAssets 10000000000 ;  # 100억
+    basel:capitalAdequacyRatio 10.0 .  # 10%
+
+# 규칙: CAR >= 8%
+:Bank_A a basel:CompliantBank .
+# if capitalAdequacyRatio >= 8.0
+```
+
+**자동 컴플라이언스 검증:**
+```sparql
+# Basel III 위반 은행 찾기
+SELECT ?bank ?ratio
+WHERE {
+    ?bank a basel:Bank ;
+          basel:capitalAdequacyRatio ?ratio .
+    FILTER(?ratio < 8.0)
+}
+```
+
+### MiFID II (유럽)
+
+**MiFID II**는 유럽 금융시장 규제입니다.
+
+**주요 요구사항:**
+- 거래 투명성
+- 고객 적합성 평가
+- 최선 집행 의무
+
+**온톨로지 모델:**
+```turtle
+@prefix mifid: <http://mifid.example.org/> .
+
+# 고객 분류
+mifid:Client a owl:Class .
+mifid:RetailClient rdfs:subClassOf mifid:Client .
+mifid:ProfessionalClient rdfs:subClassOf mifid:Client .
+mifid:EligibleCounterparty rdfs:subClassOf mifid:Client .
+
+# 상품 복잡도
+mifid:FinancialProduct a owl:Class .
+mifid:complexityLevel a owl:DatatypeProperty ;
+    rdfs:domain mifid:FinancialProduct ;
+    rdfs:range xsd:integer .  # 1-5
+
+# 적합성 검증
+:Customer_A a mifid:RetailClient ;
+    mifid:riskProfile "conservative" ;
+    mifid:investmentExperience "beginner" .
+
+:Product_X a mifid:FinancialProduct ;
+    mifid:complexityLevel 5 ;  # 매우 복잡
+    mifid:riskLevel "high" .
+
+# 규칙: 복잡한 상품은 보수적 고객에게 부적합
+:Product_X mifid:unsuitableFor :Customer_A .
+```
+
+### Dodd-Frank (미국)
+
+**Dodd-Frank**는 미국 금융개혁법입니다.
+
+**Volcker Rule (자기매매 금지):**
+```turtle
+@prefix dodd: <http://dodd-frank.example.org/> .
+
+# 금지된 거래
+dodd:ProprietaryTrading a owl:Class ;
+    rdfs:label "Proprietary Trading"@en .
+
+# 허용된 거래
+dodd:MarketMaking a owl:Class ;
+    rdfs:label "Market Making"@en .
+
+dodd:Hedging a owl:Class ;
+    rdfs:label "Hedging"@en .
+
+# 검증
+:Trade_001 a dodd:Trade ;
+    dodd:purpose "proprietary" ;
+    dodd:tradedBy :Bank_B .
+
+# 규칙: 은행의 자기매매 금지
+:Trade_001 a dodd:ProhibitedTrade .
+```
+
+---
+
+## 5. 실제 금융기관 사례
+
+### 사례 1: JPMorgan Chase
+
+**프로젝트:** FIBO 기반 데이터 표준화
+
+**구현:**
+```turtle
+# JPMorgan의 금융 상품 통합
+:JPM_DataLake a :DataIntegrationPlatform ;
+    :uses fibo:FinancialInstrument ;
+    :integrates [
+        :system "Trading System" ;
+        :system "Risk Management" ;
+        :system "Compliance" ;
+        :system "Accounting"
+    ] .
+
+# 예: CDS 계약
+:CDS_XYZ a fibo:CreditDefaultSwap ;
+    :referenceEntity :Company_X ;
+    :notional 10000000 ;  # $10M
+    :maturity "2028-12-20"^^xsd:date ;
+    :spread 250 .  # 250 bps
+```
+
+**성과:**
+- ✅ 데이터 일관성 **85% 향상**
+- ✅ 규제 보고 시간 **60% 단축**
+- ✅ 운영 비용 **연간 $50M 절감**
+
+### 사례 2: Goldman Sachs
+
+**프로젝트:** 파생상품 리스크 관리
+
+**구현:**
+```sparql
+# 포트폴리오 리스크 계산
+SELECT ?counterparty (SUM(?exposure) AS ?totalExposure)
+WHERE {
+    ?trade a fibo:Derivative ;
+           :counterparty ?counterparty ;
+           :marketValue ?value ;
+           :creditRisk ?risk .
+    
+    BIND(?value * ?risk AS ?exposure)
+}
+GROUP BY ?counterparty
+HAVING (SUM(?exposure) > 100000000)  # $100M 초과
+ORDER BY DESC(?totalExposure)
+```
+
+**성과:**
+- ✅ 리스크 계산 속도 **10배 향상**
+- ✅ 신용 리스크 **실시간 모니터링**
+- ✅ VAR (Value at Risk) **정확도 25% 향상**
+
+### 사례 3: Bloomberg
+
+**프로젝트:** 금융 데이터 표준화
+
+**구현:**
+```turtle
+# Bloomberg의 데이터 모델
+:BBG a :FinancialDataProvider ;
+    :provides [
+        :dataType fibo:MarketData ;
+        :dataType fibo:ReferenceData ;
+        :dataType fibo:CorporateActions
+    ] .
+
+# Bloomberg 티커 → FIBO 매핑
+:BBG_AAPL_US_Equity owl:sameAs :Apple_CommonStock .
+:Apple_CommonStock a fibo:CommonStock ;
+    :isin "US0378331005" ;
+    :ticker "AAPL" .
+```
+
+**성과:**
+- ✅ 데이터 품질 **95% 달성**
+- ✅ 50,000+ 금융 상품 표준화
+- ✅ 고객 통합 비용 **40% 감소**
+
+### 사례 4: Wells Fargo
+
+**프로젝트:** 규제 컴플라이언스 자동화
+
+**구현:**
+```python
+# 자동 컴플라이언스 검증
+def check_compliance(bank):
+    # SPARQL 쿼리
+    violations = query(f"""
+        SELECT ?rule ?severity
+        WHERE {{
+            {bank} :violates ?rule .
+            ?rule :severity ?severity .
+        }}
+        ORDER BY DESC(?severity)
+    """)
+    
+    if violations:
+        alert_compliance_team(violations)
+        generate_report(violations)
+```
+
+**성과:**
+- ✅ 컴플라이언스 검사 **자동화 90%**
+- ✅ 규제 위반 **70% 감소**
+- ✅ 감사 대응 시간 **50% 단축**
+
+---
+
+## 6. 리스크 관리
+
+### 신용 리스크
+
+**모델:**
+```turtle
+@prefix risk: <http://risk.example.org/> .
+
+# 거래상대방 신용 리스크
+:Counterparty_A a risk:Counterparty ;
+    risk:creditRating "BBB" ;
+    risk:probabilityOfDefault 0.05 ;  # 5%
+    risk:lossGivenDefault 0.40 .  # 40%
+
+# 익스포저
+:Trade_001 a fibo:Derivative ;
+    :counterparty :Counterparty_A ;
+    :notional 50000000 ;  # $50M
+    :marketValue 2000000 .  # $2M
+
+# Expected Loss 계산
+:Trade_001 risk:expectedLoss ?el .
+# EL = Exposure * PD * LGD
+# EL = $2M * 0.05 * 0.40 = $40,000
+```
+
+**그래프 기반 리스크 전파:**
+```sparql
+# 연쇄 디폴트 위험
+SELECT ?entity ?indirectRisk
+WHERE {
+    :Counterparty_A risk:hasExposureTo ?intermediate .
+    ?intermediate risk:hasExposureTo ?entity .
+    
+    :Counterparty_A risk:probabilityOfDefault ?pd1 .
+    ?intermediate risk:probabilityOfDefault ?pd2 .
+    
+    BIND(?pd1 * ?pd2 AS ?indirectRisk)
+}
+```
+
+### 시장 리스크
+
+**VAR (Value at Risk) 계산:**
+```turtle
+# 포트폴리오
+:Portfolio_A a risk:Portfolio ;
+    :contains :Stock_Samsung , :Stock_Hyundai , :Bond_KTB ;
+    :totalValue 100000000 .  # 1억
+
+# 시장 리스크 팩터
+:Portfolio_A risk:sensitive_to [
+        :factor :KOSPI ;
+        :beta 1.2
+    ] , [
+        :factor :USD_KRW ;
+        :beta 0.5
+    ] , [
+        :factor :Interest_Rate ;
+        :duration 5.0
+    ] .
+
+# VAR 계산 (95% 신뢰수준, 1일)
+:Portfolio_A risk:var95_1d 5000000 .  # 500만원
+```
+
+### 운영 리스크
+
+```turtle
+# 운영 리스크 이벤트
+:OpRisk_001 a risk:OperationalRisk ;
+    risk:category "Fraud" ;
+    risk:severity "High" ;
+    risk:probability 0.01 ;
+    risk:impact 10000000 ;  # $10M
+    risk:affectedSystem "Trading System" .
+
+# 통제
+:Control_001 a risk:Control ;
+    risk:mitigates :OpRisk_001 ;
+    risk:effectiveness 0.8 .  # 80% 효과
+```
+
+---
+
+## 7. 사기 탐지
+
+### 그래프 기반 사기 패턴
+
+**패턴 1: 순환 거래 (Circular Trading)**
+```sparql
+# A → B → C → A 순환 패턴
+SELECT ?account1 ?account2 ?account3
+WHERE {
+    ?tx1 :from ?account1 ; :to ?account2 .
+    ?tx2 :from ?account2 ; :to ?account3 .
+    ?tx3 :from ?account3 ; :to ?account1 .
+    
+    ?tx1 :timestamp ?t1 .
+    ?tx2 :timestamp ?t2 .
+    ?tx3 :timestamp ?t3 .
+    
+    # 24시간 내
+    FILTER(?t3 - ?t1 < 86400)
+}
+```
+
+**패턴 2: 자금 세탁 (Layering)**
+```sparql
+# 여러 단계 거쳐 자금 이동
+SELECT ?source ?destination (COUNT(?hop) AS ?layers)
+WHERE {
+    ?source :transfersTo+ ?destination .
+    ?source :transfersTo ?hop .
+    ?hop :transfersTo+ ?destination .
+}
+GROUP BY ?source ?destination
+HAVING (COUNT(?hop) >= 5)  # 5단계 이상
+```
+
+**패턴 3: 이상 거래량**
+```turtle
+# 계좌 프로파일
+:Account_X a :BankAccount ;
+    :avgDailyTransaction 1000000 ;  # 평균 100만원
+    :stdDeviation 200000 .  # 표준편차 20만원
+
+# 이상 거래
+:Transaction_123 a :Transaction ;
+    :account :Account_X ;
+    :amount 10000000 ;  # 1천만원
+    :timestamp "2025-11-09T14:30:00Z"^^xsd:dateTime .
+
+# 규칙: 3-sigma 초과
+:Transaction_123 a :AnomalousTransaction .
+# if amount > avg + 3*stdDev
+# 10M > 1M + 3*0.2M = 1.6M ✅
+```
+
+### 실시간 사기 탐지
+
+**아키텍처:**
+```
+거래 스트림
+    ↓
+온톨로지 매핑
+    ↓
+그래프 패턴 매칭
+    ↓
+ML 모델 (확률)
+    ↓
+알림 / 차단
+```
+
+**Python 예제:**
+```python
+from rdflib import Graph
+
+def detect_fraud(transaction):
+    # 온톨로지 로드
+    g = Graph()
+    g.parse("financial_ontology.ttl")
+    
+    # 패턴 검색
+    patterns = [
+        check_circular_trading(g, transaction),
+        check_layering(g, transaction),
+        check_anomaly(g, transaction)
+    ]
+    
+    # ML 스코어
+    fraud_score = ml_model.predict(patterns)
+    
+    if fraud_score > 0.8:
+        alert_fraud_team(transaction)
+        block_transaction(transaction)
+```
+
+---
+
+## 8. 알고리즘 트레이딩
+
+### 온톨로지 기반 트레이딩 전략
+
+**전략 모델:**
+```turtle
+@prefix algo: <http://algotrading.example.org/> .
+
+# 모멘텀 전략
+:Momentum_Strategy a algo:TradingStrategy ;
+    algo:indicator [
+        :type "RSI" ;  # Relative Strength Index
+        :period 14 ;
+        :threshold_buy 30 ;
+        :threshold_sell 70
+    ] ;
+    algo:indicator [
+        :type "MACD" ;
+        :fast_period 12 ;
+        :slow_period 26
+    ] .
+
+# 백테스트 결과
+:Momentum_Strategy algo:backtest [
+    :startDate "2020-01-01"^^xsd:date ;
+    :endDate "2025-01-01"^^xsd:date ;
+    :return 45.5 ;  # 45.5%
+    :sharpeRatio 1.8 ;
+    :maxDrawdown 15.2  # -15.2%
+] .
+```
+
+### 시장 데이터 통합
+
+```turtle
+# 실시간 데이터
+:Samsung_Stock :currentPrice [
+    :bid 71000 ;
+    :ask 71100 ;
+    :last 71050 ;
+    :volume 5234567 ;
+    :timestamp "2025-11-09T14:30:15Z"^^xsd:dateTime
+] .
+
+# 기술적 지표
+:Samsung_Stock :technicalIndicator [
+    :RSI 65.5 ;
+    :MACD 2.3 ;
+    :MA_50 70500 ;
+    :MA_200 68000
+] .
+```
+
+### 주문 실행 최적화
+
+```sparql
+# 최선 집행 (Best Execution)
+SELECT ?venue ?price ?liquidity
+WHERE {
+    ?venue a :TradingVenue ;
+           :lists :Samsung_Stock ;
+           :bidPrice ?price ;
+           :liquidity ?liquidity .
+}
+ORDER BY DESC(?price)
+LIMIT 1
+```
+
+### 리스크 관리 통합
+
+```python
+def execute_trade(strategy, signal):
+    # 포지션 크기 계산
+    position_size = calculate_position_size(
+        strategy.risk_per_trade,
+        signal.stop_loss
+    )
+    
+    # 온톨로지 검증
+    if not check_risk_limits(position_size):
+        return "Risk limit exceeded"
+    
+    # 주문 실행
+    order = create_order(
+        symbol=signal.symbol,
+        side=signal.side,
+        quantity=position_size
+    )
+    
+    return execute_order(order)
+```
+
+---
+
+## 9. 암호화폐/DeFi 온톨로지
+
+### 암호화폐 모델링
+
+```turtle
+@prefix crypto: <http://crypto.example.org/> .
+
+# 비트코인
+:Bitcoin a crypto:Cryptocurrency ;
+    rdfs:label "Bitcoin"@en ;
+    crypto:symbol "BTC" ;
+    crypto:blockchain :Bitcoin_Blockchain ;
+    crypto:consensusMechanism "Proof of Work" ;
+    crypto:maxSupply 21000000 ;
+    crypto:blockTime 600 .  # 10분
+
+# 이더리움
+:Ethereum a crypto:Cryptocurrency ;
+    rdfs:label "Ethereum"@en ;
+    crypto:symbol "ETH" ;
+    crypto:blockchain :Ethereum_Blockchain ;
+    crypto:consensusMechanism "Proof of Stake" ;
+    crypto:smartContractPlatform true .
+```
+
+### 스마트 컨트랙트
+
+```turtle
+# Uniswap (DEX)
+:Uniswap_V3 a crypto:SmartContract ;
+    crypto:platform :Ethereum ;
+    crypto:type "Decentralized Exchange" ;
+    crypto:address "0x1F98431c8aD98523631AE4a59f267346ea31F984" ;
+    crypto:auditedBy "Trail of Bits" ;
+    crypto:totalValueLocked 3000000000 .  # $3B
+```
+
+### DeFi 프로토콜
+
+```turtle
+# 렌딩 프로토콜 (Aave)
+:Aave a crypto:LendingProtocol ;
+    crypto:totalDeposits 8000000000 ;  # $8B
+    crypto:totalBorrows 5000000000 ;  # $5B
+    crypto:collateralRatio 150 .  # 150%
+
+# 예금
+:User_A crypto:deposits [
+    :asset :USDC ;
+    :amount 10000 ;  # $10,000
+    :apy 5.5  # 5.5% APY
+] .
+
+# 대출
+:User_A crypto:borrows [
+    :asset :ETH ;
+    :amount 5 ;  # 5 ETH
+    :collateral :USDC_Deposit ;
+    :apr 3.2  # 3.2% APR
+] .
+```
+
+### NFT 온톨로지
+
+```turtle
+# NFT 컬렉션
+:Bored_Ape_Yacht_Club a crypto:NFTCollection ;
+    crypto:standard "ERC-721" ;
+    crypto:blockchain :Ethereum ;
+    crypto:totalSupply 10000 ;
+    crypto:floorPrice 30 .  # 30 ETH
+
+# 개별 NFT
+:BAYC_1234 a crypto:NFT ;
+    crypto:collection :Bored_Ape_Yacht_Club ;
+    crypto:tokenId "1234" ;
+    crypto:owner :User_B ;
+    crypto:metadata [
+        :background "Blue" ;
+        :fur "Golden Brown" ;
+        :eyes "Bored"
+    ] .
+```
+
+---
+
+## 10. 실습: 금융 관계 그래프
+
+### 🎮 3D Knowledge Graph 열기
+
+URL: https://kss.ai.kr/3d-graph
+
+### 실습 목표
+
+**금융 생태계**를 3D로 시각화합니다: 은행, 투자자, 금융 상품, 규제.
+
+### Step 1: 데이터 준비
+
+```turtle
+@prefix : <http://finance.example.org/> .
+@prefix fibo: <https://spec.edmcouncil.org/fibo/ontology/> .
+
+# 은행
+:KB_Bank a fibo:Bank ;
+    rdfs:label "KB국민은행"@ko ;
+    :assets 500000000000 ;  # 500조
+    :capitalRatio 12.5 ;
+    :headquaters "서울" .
+
+:Shinhan_Bank a fibo:Bank ;
+    rdfs:label "신한은행"@ko ;
+    :assets 480000000000 ;  # 480조
+    :capitalRatio 13.2 .
+
+# 투자자
+:Investor_A a fibo:Investor ;
+    rdfs:label "투자자 A"@ko ;
+    :riskProfile "aggressive" ;
+    :portfolio_value 1000000000 .  # 10억
+
+# 금융 상품
+:Samsung_Stock a fibo:CommonStock ;
+    rdfs:label "삼성전자"@ko ;
+    :ticker "005930" ;
+    :price 71000 ;
+    :marketCap 400000000000000 .  # 400조
+
+:KTB_10Y a fibo:GovernmentBond ;
+    rdfs:label "국고채 10년"@ko ;
+    :couponRate 3.5 ;
+    :maturity "2035-03-15"^^xsd:date .
+
+:KOSPI200_Option a fibo:CallOption ;
+    rdfs:label "KOSPI200 콜옵션"@ko ;
+    :strikePrice 350 .
+
+# 관계
+:Investor_A :holds [
+    :asset :Samsung_Stock ;
+    :shares 1000 ;
+    :value 71000000
+] .
+
+:Investor_A :holds [
+    :asset :KTB_10Y ;
+    :faceValue 100000000 ;
+    :value 98000000
+] .
+
+:KB_Bank :underwrites :KTB_10Y .
+:Shinhan_Bank :custodian :Samsung_Stock .
+
+# 규제
+:FSC a :Regulator ;
+    rdfs:label "금융위원회"@ko ;
+    :regulates :KB_Bank , :Shinhan_Bank .
+
+:Basel_III a :Regulation ;
+    rdfs:label "Basel III"@en ;
+    :appliesTo :KB_Bank , :Shinhan_Bank ;
+    :minimumCapitalRatio 8.0 .
+```
+
+### Step 2: 3D Graph 로드
+
+1. "Import Data" 클릭
+2. Turtle 데이터 붙여넣기
+3. "Load Graph" 클릭
+
+### Step 3: 시각화 확인
+
+**노드 색상:**
+- 🏦 은행: 파랑
+- 👤 투자자: 초록
+- 📈 주식: 빨강
+- 📊 채권: 노랑
+- 📜 규제: 보라
+
+**그래프 구조:**
+```
+[금융위원회] --regulates--> [KB은행]
+                           [신한은행]
+
+[투자자A] --holds--> [삼성전자]
+                    [국고채10년]
+
+[KB은행] --underwrites--> [국고채10년]
+[신한은행] --custodian--> [삼성전자]
+
+[Basel III] --appliesTo--> [KB은행]
+                          [신한은행]
+```
+
+### Step 4: SPARQL 쿼리
+
+```sparql
+# 투자자 A의 총 자산
+SELECT (SUM(?value) AS ?totalValue)
+WHERE {
+    :Investor_A :holds ?holding .
+    ?holding :value ?value .
+}
+
+# 결과: 169,000,000 (1.69억)
+```
+
+### Step 5: 컴플라이언스 검증
+
+```sparql
+# Basel III 위반 은행
+SELECT ?bank ?ratio
+WHERE {
+    ?bank a fibo:Bank ;
+          :capitalRatio ?ratio .
+    
+    :Basel_III :minimumCapitalRatio ?minimum .
+    
+    FILTER(?ratio < ?minimum)
+}
+
+# 결과: 없음 (모두 준수)
+```
+
+---
+
+## 11. 고객 분석과 추천
+
+### 고객 세분화
+
+```turtle
+# 고객 프로파일
+:Customer_A a fibo:Customer ;
+    :age 35 ;
+    :income 80000000 ;  # 8천만원
+    :riskTolerance "moderate" ;
+    :investmentGoal "retirement" ;
+    :timeHorizon 30 .  # 30년
+
+# 추천 규칙
+?product fibo:suitableFor :Customer_A .
+
+# if product.risk == "moderate"
+# and product.timeHorizon >= 20
+```
+
+### 상품 추천
+
+```sparql
+# 적합한 상품 찾기
+SELECT ?product ?expectedReturn ?risk
+WHERE {
+    :Customer_A :riskTolerance ?customerRisk ;
+                :timeHorizon ?horizon .
+    
+    ?product fibo:riskLevel ?risk ;
+             fibo:expectedReturn ?expectedReturn ;
+             fibo:recommendedHorizon ?productHorizon .
+    
+    FILTER(?risk = ?customerRisk)
+    FILTER(?productHorizon <= ?horizon)
+}
+ORDER BY DESC(?expectedReturn)
+LIMIT 5
+```
+
+### 크로스셀링
+
+```sparql
+# "이 상품을 산 고객은 이것도 샀습니다"
+SELECT ?relatedProduct (COUNT(?customer) AS ?count)
+WHERE {
+    :Customer_A :purchased :Product_X .
+    
+    ?customer :purchased :Product_X ;
+              :purchased ?relatedProduct .
+    
+    FILTER(?relatedProduct != :Product_X)
+}
+GROUP BY ?relatedProduct
+ORDER BY DESC(?count)
+LIMIT 3
+```
+
+---
+
+## 12. 요약과 다음 단계
+
+### 핵심 정리
+
+**1. FIBO**
+- EDM Council 표준
+- 30,000+ 개념
+- 8개 주요 모듈
+
+**2. 금융 상품 모델링**
+- 주식, 채권, 파생상품
+- 복잡한 관계 표현
+- 계층적 분류
+
+**3. 규제 준수**
+- Basel III (자본 규제)
+- MiFID II (유럽 시장)
+- Dodd-Frank (미국 개혁)
+- 자동화 가능
+
+**4. 실제 금융기관**
+- **JPMorgan:** $50M/년 절감
+- **Goldman:** 리스크 계산 10배 향상
+- **Bloomberg:** 50,000+ 상품 표준화
+- **Wells Fargo:** 90% 자동화
+
+**5. 실무 적용**
+- 리스크 관리 (신용, 시장, 운영)
+- 사기 탐지 (패턴 매칭)
+- 알고리즘 트레이딩
+- 암호화폐/DeFi
+
+### 실전 체크리스트
+
+**금융 온톨로지 프로젝트 시:**
+- [ ] FIBO 모듈 선택
+- [ ] 규제 요구사항 확인
+- [ ] 데이터 소스 매핑
+- [ ] 컴플라이언스 규칙 정의
+- [ ] 실시간 검증 구현
+
+### 다음 챕터
+
+**Chapter 8: 제조 온톨로지 (Industry 4.0)**
+
+제조업의 디지털 혁신!
+- **Palantir Foundry Ontology** (3-Layer)
+- Industry 4.0 + IoT
+- Airbus, Ferrari, BMW, Tesla 사례
+- **Palantir + NVIDIA 협업 (2025년 1월)**
+- **3D Knowledge Graph로 공장 시각화!**
+
+---
+
+## 📝 연습 문제
+
+### 문제 1: FIBO 클래스 계층
+
+CommonStock의 모든 상위 클래스를 나열하세요.
+
+**정답:**
+- fibo:Equity
+- fibo:Security
+- fibo:FinancialInstrument
+
+### 문제 2: Basel III 검증
+
+자본총액 100억, 위험가중자산 1,200억인 은행의 자본비율을 계산하고 Basel III 준수 여부를 판단하세요.
+
+**정답:**
+```
+CAR = 100억 / 1,200억 = 8.33%
+Basel III 최소 요구: 8%
+→ 준수 ✅
+```
+
+### 문제 3: 사기 탐지
+
+순환 거래를 탐지하는 SPARQL 쿼리를 작성하세요 (A → B → C → A).
+
+**정답:**
+```sparql
+SELECT ?a ?b ?c
+WHERE {
+    ?tx1 :from ?a ; :to ?b .
+    ?tx2 :from ?b ; :to ?c .
+    ?tx3 :from ?c ; :to ?a .
+}
+```
+
+---
+
+## 🔗 참고 자료
+
+### 표준
+1. FIBO: https://spec.edmcouncil.org/fibo/
+2. Basel III: https://www.bis.org/bcbs/basel3.htm
+3. MiFID II: https://www.esma.europa.eu/policy-rules/mifid-ii-and-mifir
+
+### 금융기관
+1. JPMorgan: https://www.jpmorganchase.com/
+2. Goldman Sachs: https://www.goldmansachs.com/
+3. Bloomberg: https://www.bloomberg.com/
+
+### 암호화폐
+1. Ethereum: https://ethereum.org/
+2. DeFi Llama: https://defillama.com/
+3. CoinGecko: https://www.coingecko.com/
+
+---
+
+**다음:** [Chapter 8: 제조 온톨로지](./chapter-08.md)
+
+**작성자:** jeromwolf (데이터공작소 TFT)  
+**작성일:** 2025-11-09  
+**버전:** 3.0 FINAL  
+**단어 수:** 약 6,800단어

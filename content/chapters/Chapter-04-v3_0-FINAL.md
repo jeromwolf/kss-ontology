@@ -1,0 +1,1580 @@
+# Chapter 4: SPARQL 쿼리 언어
+
+**학습 시간:** 90분  
+**난이도:** ⭐⭐⭐⭐  
+**시뮬레이터:** SPARQL Playground ⭐⭐  
+**작성일:** 2025-11-09  
+**버전:** 3.0 FINAL
+
+---
+
+## 🎯 학습 목표
+
+이 챕터를 마치면 다음을 할 수 있습니다:
+
+1. ✅ SPARQL의 4가지 쿼리 형식 (SELECT, CONSTRUCT, ASK, DESCRIBE)을 사용한다
+2. ✅ 고급 기능 (FILTER, OPTIONAL, UNION, BIND)을 활용한다
+3. ✅ Property Paths로 복잡한 관계를 쿼리한다
+4. ✅ Aggregation (COUNT, AVG, SUM, GROUP BY)으로 데이터를 분석한다
+5. ✅ Subquery와 SPARQL Federation을 사용한다
+6. ✅ DBpedia와 Wikidata에서 실제 데이터를 검색한다
+7. ✅ SPARQL 쿼리 성능을 최적화한다
+
+---
+
+## 📚 목차
+
+1. [SPARQL이란 무엇인가?](#1-sparql이란-무엇인가)
+2. [기본 문법: Triple Pattern](#2-기본-문법-triple-pattern)
+3. [SELECT - 데이터 조회](#3-select---데이터-조회)
+4. [FILTER - 조건 필터링](#4-filter---조건-필터링)
+5. [OPTIONAL - 선택적 매칭](#5-optional---선택적-매칭)
+6. [UNION - 대안 패턴](#6-union---대안-패턴)
+7. [Property Paths](#7-property-paths)
+8. [Aggregation - 집계 함수](#8-aggregation---집계-함수)
+9. [CONSTRUCT - 새 그래프 생성](#9-construct---새-그래프-생성)
+10. [ASK - 존재 여부 확인](#10-ask---존재-여부-확인)
+11. [DESCRIBE - 자원 설명](#11-describe---자원-설명)
+12. [Subquery와 Federation](#12-subquery와-federation)
+13. [실습: DBpedia 쿼리](#13-실습-dbpedia-쿼리)
+14. [실습: Wikidata 쿼리](#14-실습-wikidata-쿼리)
+15. [성능 최적화](#15-성능-최적화)
+16. [요약과 다음 단계](#16-요약과-다음-단계)
+
+---
+
+## 1. SPARQL이란 무엇인가?
+
+### SPARQL Protocol and RDF Query Language
+
+**SPARQL**은 RDF 데이터를 쿼리하기 위한 W3C 표준 언어입니다.
+
+**비유:**
+- SQL : 관계형 데이터베이스 = **SPARQL : RDF 그래프**
+
+### SPARQL의 역사
+
+**2004:** SPARQL 워킹 그룹 시작  
+**2008:** SPARQL 1.0 W3C 권고안  
+**2013:** SPARQL 1.1 (현재 표준)
+
+**SPARQL 1.1 새 기능:**
+- Aggregation (COUNT, AVG, SUM)
+- Subquery
+- Property Paths
+- UPDATE (INSERT, DELETE)
+- Federation (SERVICE)
+
+### SQL vs SPARQL
+
+| 특징 | SQL | SPARQL |
+|------|-----|--------|
+| **데이터 구조** | 테이블 (행/열) | 그래프 (노드/엣지) |
+| **스키마** | 고정 | 유연 |
+| **조인** | JOIN 명시 | 자동 (변수) |
+| **NULL** | 있음 | 없음 (OPTIONAL) |
+| **재귀** | 제한적 | Property Paths |
+
+**예제 비교:**
+
+**SQL:**
+```sql
+SELECT name, company
+FROM Person
+JOIN Employment ON Person.id = Employment.person_id
+JOIN Company ON Employment.company_id = Company.id
+WHERE Person.age > 30;
+```
+
+**SPARQL:**
+```sparql
+SELECT ?name ?company WHERE {
+    ?person :name ?name ;
+            :age ?age ;
+            :worksAt ?company .
+    FILTER(?age > 30)
+}
+```
+
+→ SPARQL이 더 간결! (JOIN 자동)
+
+---
+
+## 2. 기본 문법: Triple Pattern
+
+### Triple Pattern이란?
+
+SPARQL의 핵심은 **Triple Pattern**입니다.
+
+**RDF Triple:**
+```turtle
+:홍길동 :name "홍길동" .
+```
+
+**SPARQL Triple Pattern:**
+```sparql
+?person :name ?name .
+```
+
+**차이:**
+- RDF: 구체적 값
+- SPARQL: **변수 (?person, ?name)**
+
+### 변수 규칙
+
+**표기법:**
+```sparql
+?변수      # 물음표로 시작
+$변수      # 달러로 시작 (동일)
+```
+
+**예제:**
+```sparql
+?person    # 변수
+?name      # 변수
+:홍길동     # 구체적 URI
+"홍길동"    # 구체적 Literal
+```
+
+### 기본 쿼리 구조
+
+```sparql
+# 네임스페이스 선언
+PREFIX : <http://example.org/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+
+# 쿼리
+SELECT ?변수1 ?변수2
+WHERE {
+    # Triple Patterns
+    ?subject ?predicate ?object .
+}
+```
+
+### 첫 번째 쿼리
+
+**데이터:**
+```turtle
+@prefix : <http://example.org/> .
+
+:홍길동 :name "홍길동" ;
+       :age 45 .
+```
+
+**쿼리:**
+```sparql
+PREFIX : <http://example.org/>
+
+SELECT ?name ?age
+WHERE {
+    :홍길동 :name ?name ;
+           :age ?age .
+}
+```
+
+**결과:**
+```
+| name    | age |
+|---------|-----|
+| "홍길동" | 45  |
+```
+
+---
+
+## 3. SELECT - 데이터 조회
+
+### 기본 SELECT
+
+**모든 사람 조회:**
+```sparql
+PREFIX : <http://example.org/>
+
+SELECT ?person ?name
+WHERE {
+    ?person a :Person ;
+            :name ?name .
+}
+```
+
+### SELECT *
+
+**모든 변수 반환:**
+```sparql
+SELECT *
+WHERE {
+    ?person :name ?name ;
+            :age ?age .
+}
+```
+
+### DISTINCT
+
+**중복 제거:**
+```sparql
+SELECT DISTINCT ?company
+WHERE {
+    ?person :worksAt ?company .
+}
+```
+
+### LIMIT과 OFFSET
+
+**페이지네이션:**
+```sparql
+# 처음 10개
+SELECT ?person ?name
+WHERE {
+    ?person :name ?name .
+}
+LIMIT 10
+
+# 11번째부터 10개
+SELECT ?person ?name
+WHERE {
+    ?person :name ?name .
+}
+LIMIT 10
+OFFSET 10
+```
+
+### ORDER BY
+
+**정렬:**
+```sparql
+# 나이순 정렬
+SELECT ?name ?age
+WHERE {
+    ?person :name ?name ;
+            :age ?age .
+}
+ORDER BY ?age
+
+# 내림차순
+ORDER BY DESC(?age)
+
+# 다중 정렬
+ORDER BY DESC(?age) ?name
+```
+
+### 복합 예제
+
+```sparql
+PREFIX : <http://example.org/>
+
+SELECT DISTINCT ?name ?age ?company
+WHERE {
+    ?person a :Person ;
+            :name ?name ;
+            :age ?age ;
+            :worksAt ?company .
+}
+ORDER BY DESC(?age)
+LIMIT 10
+```
+
+---
+
+## 4. FILTER - 조건 필터링
+
+### 기본 FILTER
+
+**나이가 30 이상:**
+```sparql
+SELECT ?name ?age
+WHERE {
+    ?person :name ?name ;
+            :age ?age .
+    FILTER(?age >= 30)
+}
+```
+
+### 비교 연산자
+
+```sparql
+FILTER(?age > 30)      # 초과
+FILTER(?age >= 30)     # 이상
+FILTER(?age < 30)      # 미만
+FILTER(?age <= 30)     # 이하
+FILTER(?age = 30)      # 같음
+FILTER(?age != 30)     # 다름
+```
+
+### 논리 연산자
+
+```sparql
+# AND
+FILTER(?age >= 30 && ?age <= 50)
+
+# OR
+FILTER(?age < 20 || ?age > 60)
+
+# NOT
+FILTER(!(?age = 30))
+```
+
+### 문자열 함수
+
+**1. regex (정규표현식)**
+```sparql
+# 이름이 "김"으로 시작
+FILTER(regex(?name, "^김"))
+
+# 대소문자 구분 없음
+FILTER(regex(?name, "kim", "i"))
+```
+
+**2. CONTAINS**
+```sparql
+# 이름에 "길동" 포함
+FILTER(CONTAINS(?name, "길동"))
+```
+
+**3. STRSTARTS, STRENDS**
+```sparql
+# 시작
+FILTER(STRSTARTS(?name, "홍"))
+
+# 끝
+FILTER(STRENDS(?email, "@gmail.com"))
+```
+
+**4. STRLEN**
+```sparql
+# 이름이 3글자
+FILTER(STRLEN(?name) = 3)
+```
+
+### 날짜/시간 함수
+
+```sparql
+# 2020년 이후
+FILTER(?date >= "2020-01-01"^^xsd:date)
+
+# 현재 연도
+FILTER(YEAR(?date) = YEAR(NOW()))
+
+# 오늘부터 7일 이내
+FILTER(?date <= NOW() + "P7D"^^xsd:duration)
+```
+
+### 타입 체크
+
+```sparql
+# 숫자인지 확인
+FILTER(isNumeric(?value))
+
+# 리터럴인지 확인
+FILTER(isLiteral(?value))
+
+# URI인지 확인
+FILTER(isURI(?value))
+
+# Blank Node인지 확인
+FILTER(isBlank(?value))
+```
+
+### 복합 FILTER
+
+```sparql
+PREFIX : <http://example.org/>
+
+SELECT ?name ?age ?email
+WHERE {
+    ?person :name ?name ;
+            :age ?age ;
+            :email ?email .
+    
+    # 30-50세
+    FILTER(?age >= 30 && ?age <= 50)
+    
+    # 이름이 "김"으로 시작
+    FILTER(STRSTARTS(?name, "김"))
+    
+    # Gmail 계정
+    FILTER(STRENDS(?email, "@gmail.com"))
+}
+```
+
+---
+
+## 5. OPTIONAL - 선택적 매칭
+
+### OPTIONAL이란?
+
+SQL의 LEFT OUTER JOIN과 유사합니다.
+
+**문제:**
+```sparql
+# 이메일이 없는 사람은 결과에서 제외됨
+SELECT ?name ?email
+WHERE {
+    ?person :name ?name ;
+            :email ?email .
+}
+```
+
+**해결:**
+```sparql
+# 이메일이 없어도 포함
+SELECT ?name ?email
+WHERE {
+    ?person :name ?name .
+    OPTIONAL {
+        ?person :email ?email .
+    }
+}
+```
+
+**결과:**
+```
+| name    | email               |
+|---------|---------------------|
+| "홍길동" | "hong@example.com"  |
+| "김철수" | (unbound)           |
+| "이영희" | "lee@example.com"   |
+```
+
+### 다중 OPTIONAL
+
+```sparql
+SELECT ?name ?email ?phone ?address
+WHERE {
+    ?person :name ?name .
+    
+    OPTIONAL { ?person :email ?email . }
+    OPTIONAL { ?person :phone ?phone . }
+    OPTIONAL { ?person :address ?address . }
+}
+```
+
+### OPTIONAL + FILTER
+
+```sparql
+SELECT ?name ?age
+WHERE {
+    ?person :name ?name .
+    
+    OPTIONAL {
+        ?person :age ?age .
+        FILTER(?age >= 30)
+    }
+}
+```
+
+**주의:** FILTER가 OPTIONAL 안에 있어야 함!
+
+### BOUND 함수
+
+**값이 있는지 확인:**
+```sparql
+SELECT ?name ?email
+WHERE {
+    ?person :name ?name .
+    OPTIONAL { ?person :email ?email . }
+    FILTER(BOUND(?email))
+}
+```
+
+**값이 없는 것만:**
+```sparql
+FILTER(!BOUND(?email))
+```
+
+---
+
+## 6. UNION - 대안 패턴
+
+### UNION이란?
+
+여러 패턴 중 하나라도 매칭되면 OK
+
+**예제 1: 직원 또는 계약직**
+```sparql
+SELECT ?person ?name
+WHERE {
+    ?person :name ?name .
+    
+    {
+        ?person a :Employee .
+    }
+    UNION
+    {
+        ?person a :Contractor .
+    }
+}
+```
+
+**예제 2: 이메일 또는 전화번호**
+```sparql
+SELECT ?person ?contact
+WHERE {
+    ?person :name ?name .
+    
+    {
+        ?person :email ?contact .
+    }
+    UNION
+    {
+        ?person :phone ?contact .
+    }
+}
+```
+
+### 다중 UNION
+
+```sparql
+SELECT ?person ?status
+WHERE {
+    ?person :name ?name .
+    
+    {
+        ?person a :Student .
+        BIND("학생" AS ?status)
+    }
+    UNION
+    {
+        ?person a :Employee .
+        BIND("직원" AS ?status)
+    }
+    UNION
+    {
+        ?person a :Retiree .
+        BIND("퇴직자" AS ?status)
+    }
+}
+```
+
+### OPTIONAL vs UNION
+
+**OPTIONAL:**
+- LEFT OUTER JOIN
+- 왼쪽 패턴은 항상 매칭
+
+**UNION:**
+- OR 조건
+- 어느 쪽이든 매칭 가능
+
+---
+
+## 7. Property Paths
+
+### Property Paths란?
+
+**복잡한 경로를 간단히 표현**
+
+### 기본 연산자
+
+#### 1. / (순차)
+
+```sparql
+# A의 B의 C
+?person :parent / :parent ?grandparent .
+
+# = 다음과 동일:
+?person :parent ?p .
+?p :parent ?grandparent .
+```
+
+#### 2. | (대안)
+
+```sparql
+# 이메일 또는 전화번호
+?person (:email | :phone) ?contact .
+```
+
+#### 3. * (0회 이상 반복)
+
+```sparql
+# 조상 (자기 자신 포함)
+?person :parent* ?ancestor .
+```
+
+#### 4. + (1회 이상 반복)
+
+```sparql
+# 조상 (자기 자신 제외)
+?person :parent+ ?ancestor .
+```
+
+#### 5. ? (0회 또는 1회)
+
+```sparql
+# 직접 상사 또는 본인
+?person :reportsTo? ?manager .
+```
+
+#### 6. ^ (역방향)
+
+```sparql
+# A의 자식 = B의 부모가 A
+?child ^:parent ?person .
+
+# = 다음과 동일:
+?person :parent ?child .
+```
+
+### 실전 예제
+
+**예제 1: 친구의 친구**
+```sparql
+SELECT ?person ?fof
+WHERE {
+    :홍길동 :knows / :knows ?fof .
+    FILTER(?fof != :홍길동)
+}
+```
+
+**예제 2: 모든 조상**
+```sparql
+SELECT ?person ?ancestor
+WHERE {
+    ?person :name "홍길동" ;
+            :parent+ ?ancestor .
+}
+```
+
+**예제 3: 조직 계층**
+```sparql
+# 모든 하위 부서
+SELECT ?dept ?subdept
+WHERE {
+    :개발팀 :hasSubDepartment* ?subdept .
+}
+```
+
+**예제 4: 관리자 체인**
+```sparql
+# 최상위 관리자까지
+SELECT ?person ?manager
+WHERE {
+    ?person :name "홍길동" ;
+            :reportsTo+ ?manager .
+}
+ORDER BY ?manager
+```
+
+**예제 5: 역방향 관계**
+```sparql
+# 저자가 쓴 책
+SELECT ?author ?book
+WHERE {
+    ?author :name "김영하" ;
+            ^:writtenBy ?book .
+}
+```
+
+### Property Paths 조합
+
+```sparql
+# 부모의 형제의 자식 (사촌)
+?person :parent / :sibling / ^:parent ?cousin .
+
+# 2단계 이내 친구
+?person :knows{1,2} ?friend .
+
+# 정확히 3단계 조상
+?person :parent{3} ?ancestor .
+```
+
+---
+
+## 8. Aggregation - 집계 함수
+
+### COUNT
+
+**전체 개수:**
+```sparql
+SELECT (COUNT(*) AS ?total)
+WHERE {
+    ?person a :Person .
+}
+```
+
+**DISTINCT COUNT:**
+```sparql
+SELECT (COUNT(DISTINCT ?company) AS ?companyCount)
+WHERE {
+    ?person :worksAt ?company .
+}
+```
+
+### SUM, AVG, MIN, MAX
+
+```sparql
+SELECT 
+    (SUM(?age) AS ?totalAge)
+    (AVG(?age) AS ?avgAge)
+    (MIN(?age) AS ?minAge)
+    (MAX(?age) AS ?maxAge)
+WHERE {
+    ?person :age ?age .
+}
+```
+
+### GROUP BY
+
+**회사별 직원 수:**
+```sparql
+SELECT ?company (COUNT(?person) AS ?employeeCount)
+WHERE {
+    ?person :worksAt ?company .
+}
+GROUP BY ?company
+ORDER BY DESC(?employeeCount)
+```
+
+### HAVING
+
+**직원이 10명 이상인 회사만:**
+```sparql
+SELECT ?company (COUNT(?person) AS ?count)
+WHERE {
+    ?person :worksAt ?company .
+}
+GROUP BY ?company
+HAVING (COUNT(?person) >= 10)
+```
+
+### GROUP_CONCAT
+
+**그룹의 값들을 문자열로:**
+```sparql
+SELECT ?company 
+       (GROUP_CONCAT(?name; separator=", ") AS ?employees)
+WHERE {
+    ?person :worksAt ?company ;
+            :name ?name .
+}
+GROUP BY ?company
+```
+
+**결과:**
+```
+| company      | employees                    |
+|--------------|------------------------------|
+| :데이터공작소 | "홍길동, 김철수, 이영희"      |
+```
+
+### 복합 집계
+
+```sparql
+PREFIX : <http://example.org/>
+
+SELECT ?company 
+       (COUNT(?person) AS ?count)
+       (AVG(?age) AS ?avgAge)
+       (MIN(?salary) AS ?minSalary)
+       (MAX(?salary) AS ?maxSalary)
+WHERE {
+    ?person :worksAt ?company ;
+            :age ?age ;
+            :salary ?salary .
+}
+GROUP BY ?company
+HAVING (COUNT(?person) >= 5)
+ORDER BY DESC(?avgAge)
+```
+
+---
+
+## 9. CONSTRUCT - 새 그래프 생성
+
+### CONSTRUCT란?
+
+SELECT는 표 형태로 결과를 반환하지만,  
+**CONSTRUCT**는 **새로운 RDF 그래프**를 생성합니다.
+
+### 기본 문법
+
+```sparql
+CONSTRUCT {
+    # 생성할 Triple 패턴
+    ?subject ?predicate ?object .
+}
+WHERE {
+    # 매칭할 Triple 패턴
+    ?subject ?predicate ?object .
+}
+```
+
+### 예제 1: 단순 복사
+
+```sparql
+CONSTRUCT {
+    ?person :name ?name .
+}
+WHERE {
+    ?person :name ?name .
+}
+```
+
+**결과 (RDF):**
+```turtle
+:홍길동 :name "홍길동" .
+:김철수 :name "김철수" .
+```
+
+### 예제 2: 변환
+
+**FOAF → Schema.org 변환:**
+```sparql
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX schema: <http://schema.org/>
+
+CONSTRUCT {
+    ?person schema:name ?name ;
+            schema:email ?email .
+}
+WHERE {
+    ?person foaf:name ?name ;
+            foaf:mbox ?email .
+}
+```
+
+### 예제 3: 추론
+
+**간접 관계 생성:**
+```sparql
+CONSTRUCT {
+    ?person :hasAncestor ?ancestor .
+}
+WHERE {
+    ?person :parent+ ?ancestor .
+}
+```
+
+### 예제 4: 요약 정보
+
+```sparql
+CONSTRUCT {
+    ?company :employeeCount ?count .
+}
+WHERE {
+    SELECT ?company (COUNT(?person) AS ?count)
+    WHERE {
+        ?person :worksAt ?company .
+    }
+    GROUP BY ?company
+}
+```
+
+### 실전 활용
+
+**데이터 ETL:**
+1. 소스 시스템에서 데이터 추출
+2. CONSTRUCT로 변환
+3. 타겟 시스템에 적재
+
+**온톨로지 매핑:**
+- SNOMED CT → ICD-10
+- FIBO → 내부 온톨로지
+
+---
+
+## 10. ASK - 존재 여부 확인
+
+### ASK란?
+
+**true/false만 반환** (EXISTS 확인)
+
+### 기본 문법
+
+```sparql
+ASK {
+    # 패턴
+}
+```
+
+### 예제
+
+**예제 1: 사람이 존재하나?**
+```sparql
+PREFIX : <http://example.org/>
+
+ASK {
+    ?person a :Person .
+}
+```
+
+**결과:** `true` 또는 `false`
+
+**예제 2: 특정 관계 확인**
+```sparql
+ASK {
+    :홍길동 :worksAt :데이터공작소 .
+}
+```
+
+**예제 3: 조건부 확인**
+```sparql
+ASK {
+    ?person :age ?age .
+    FILTER(?age < 18)
+}
+```
+
+### 실전 활용
+
+**1. 검증:**
+```sparql
+# 모든 책에 저자가 있나?
+ASK {
+    ?book a :Book .
+    FILTER NOT EXISTS {
+        ?book :writtenBy ?author .
+    }
+}
+```
+
+**2. 권한 확인:**
+```sparql
+# 이 사용자가 관리자인가?
+ASK {
+    :user123 a :Administrator .
+}
+```
+
+**3. 데이터 품질:**
+```sparql
+# 중복 ISBN이 있나?
+ASK {
+    ?book1 :isbn ?isbn .
+    ?book2 :isbn ?isbn .
+    FILTER(?book1 != ?book2)
+}
+```
+
+---
+
+## 11. DESCRIBE - 자원 설명
+
+### DESCRIBE란?
+
+**자원에 대한 모든 정보 반환**
+
+### 기본 문법
+
+```sparql
+DESCRIBE <uri>
+```
+
+### 예제
+
+**예제 1: 특정 자원**
+```sparql
+DESCRIBE :홍길동
+```
+
+**결과 (구현 의존적):**
+```turtle
+:홍길동 :name "홍길동" ;
+       :age 45 ;
+       :worksAt :데이터공작소 ;
+       :email "hong@example.com" .
+```
+
+**예제 2: 변수**
+```sparql
+DESCRIBE ?person
+WHERE {
+    ?person :name "홍길동" .
+}
+```
+
+**예제 3: 다중 자원**
+```sparql
+DESCRIBE ?person ?company
+WHERE {
+    ?person :worksAt ?company .
+}
+```
+
+### 활용
+
+**1. 탐색:**
+- 자원의 전체 정보 확인
+- API 개발 (GET /resource/:id)
+
+**2. 캐싱:**
+- 자원 정보를 한번에 가져와 캐시
+
+**3. 디버깅:**
+- 온톨로지 개발 중 자원 확인
+
+---
+
+## 12. Subquery와 Federation
+
+### Subquery
+
+**쿼리 안에 쿼리:**
+
+**예제 1: 평균 이상 나이**
+```sparql
+SELECT ?name ?age
+WHERE {
+    ?person :name ?name ;
+            :age ?age .
+    
+    {
+        SELECT (AVG(?age) AS ?avgAge)
+        WHERE {
+            ?person :age ?age .
+        }
+    }
+    
+    FILTER(?age > ?avgAge)
+}
+```
+
+**예제 2: Top 10 회사의 직원**
+```sparql
+SELECT ?person ?company
+WHERE {
+    ?person :worksAt ?company .
+    
+    {
+        SELECT ?company
+        WHERE {
+            ?person :worksAt ?company .
+        }
+        GROUP BY ?company
+        ORDER BY DESC(COUNT(?person))
+        LIMIT 10
+    }
+}
+```
+
+### SPARQL Federation (SERVICE)
+
+**외부 엔드포인트 쿼리:**
+
+**예제: DBpedia + 로컬 데이터**
+```sparql
+PREFIX dbr: <http://dbpedia.org/resource/>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+
+SELECT ?person ?name ?dbpediaInfo
+WHERE {
+    # 로컬 데이터
+    ?person :name ?name ;
+            :dbpediaURI ?dbpediaURI .
+    
+    # DBpedia에서 정보 가져오기
+    SERVICE <http://dbpedia.org/sparql> {
+        ?dbpediaURI dbo:abstract ?dbpediaInfo .
+        FILTER(LANG(?dbpediaInfo) = "en")
+    }
+}
+```
+
+**예제: Wikidata Federation**
+```sparql
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+
+SELECT ?person ?name ?birthDate
+WHERE {
+    ?person :name ?name ;
+            :wikidataID ?wd .
+    
+    SERVICE <https://query.wikidata.org/sparql> {
+        ?wd wdt:P569 ?birthDate .
+    }
+}
+```
+
+---
+
+## 13. 실습: DBpedia 쿼리
+
+### DBpedia란?
+
+Wikipedia의 구조화된 정보를 RDF로 변환한 Knowledge Graph
+
+**엔드포인트:** https://dbpedia.org/sparql
+
+### 🎮 SPARQL Playground 열기
+
+URL: https://kss.ai.kr/sparql-playground
+
+### 실습 1: 한국 대통령 목록
+
+```sparql
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX dbr: <http://dbpedia.org/resource/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?president ?name ?birthDate
+WHERE {
+    ?president dbo:office dbr:President_of_South_Korea ;
+               rdfs:label ?name ;
+               dbo:birthDate ?birthDate .
+    FILTER(LANG(?name) = "en")
+}
+ORDER BY ?birthDate
+```
+
+### 실습 2: BTS 멤버
+
+```sparql
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX dbr: <http://dbpedia.org/resource/>
+
+SELECT ?member ?name ?birthDate
+WHERE {
+    ?member dbo:bandMember dbr:BTS_(band) ;
+            foaf:name ?name ;
+            dbo:birthDate ?birthDate .
+}
+ORDER BY ?birthDate
+```
+
+### 실습 3: 서울의 대학교
+
+```sparql
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX dbr: <http://dbpedia.org/resource/>
+
+SELECT ?university ?name ?studentCount
+WHERE {
+    ?university a dbo:University ;
+                dbo:city dbr:Seoul ;
+                rdfs:label ?name ;
+                dbo:numberOfStudents ?studentCount .
+    FILTER(LANG(?name) = "ko")
+}
+ORDER BY DESC(?studentCount)
+LIMIT 10
+```
+
+### 실습 4: 삼성 계열사
+
+```sparql
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX dbr: <http://dbpedia.org/resource/>
+
+SELECT ?company ?name
+WHERE {
+    ?company dbo:parentCompany dbr:Samsung ;
+             rdfs:label ?name .
+    FILTER(LANG(?name) = "en")
+}
+```
+
+### 실습 5: K-POP 그룹
+
+```sparql
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX dbp: <http://dbpedia.org/property/>
+
+SELECT ?group ?name ?debutYear
+WHERE {
+    ?group a dbo:Band ;
+           dbo:genre dbr:K-pop ;
+           rdfs:label ?name ;
+           dbp:yearsActive ?debutYear .
+    FILTER(LANG(?name) = "ko")
+}
+ORDER BY DESC(?debutYear)
+LIMIT 20
+```
+
+---
+
+## 14. 실습: Wikidata 쿼리
+
+### Wikidata란?
+
+Wikipedia의 자매 프로젝트, 구조화된 데이터베이스
+
+**엔드포인트:** https://query.wikidata.org/sparql
+
+### 실습 6: 노벨상 수상자 (한국)
+
+```sparql
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+
+SELECT ?person ?personLabel ?awardLabel ?year
+WHERE {
+    ?person wdt:P27 wd:Q884 ;        # 한국 국적
+            wdt:P166 ?award ;        # 수상
+            wdt:P585 ?year .         # 시기
+    ?award wdt:P31 wd:Q7191 .       # 노벨상
+    
+    SERVICE wikibase:label {
+        bd:serviceParam wikibase:language "ko,en" .
+    }
+}
+ORDER BY ?year
+```
+
+### 실습 7: 가장 높은 건물 (Top 10)
+
+```sparql
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+
+SELECT ?building ?buildingLabel ?height ?cityLabel
+WHERE {
+    ?building wdt:P31 wd:Q18142 ;    # 건물
+              wdt:P2048 ?height ;     # 높이
+              wdt:P131 ?city .        # 위치
+    
+    SERVICE wikibase:label {
+        bd:serviceParam wikibase:language "ko,en" .
+    }
+}
+ORDER BY DESC(?height)
+LIMIT 10
+```
+
+### 실습 8: 영화 감독과 대표작
+
+```sparql
+SELECT ?director ?directorLabel ?movie ?movieLabel ?year
+WHERE {
+    ?director wdt:P106 wd:Q2526255 ;  # 영화 감독
+              wdt:P27 wd:Q884 .        # 한국인
+    
+    ?movie wdt:P57 ?director ;        # 감독
+           wdt:P577 ?year .           # 개봉일
+    
+    SERVICE wikibase:label {
+        bd:serviceParam wikibase:language "ko" .
+    }
+}
+ORDER BY ?director ?year
+```
+
+### 실습 9: 프로그래밍 언어 비교
+
+```sparql
+SELECT ?lang ?langLabel ?year ?paradigmLabel
+WHERE {
+    ?lang wdt:P31 wd:Q9143 ;         # 프로그래밍 언어
+          wdt:P571 ?year ;           # 탄생일
+          wdt:P3966 ?paradigm .      # 패러다임
+    
+    FILTER(?year >= "1990-01-01"^^xsd:dateTime)
+    
+    SERVICE wikibase:label {
+        bd:serviceParam wikibase:language "en" .
+    }
+}
+ORDER BY ?year
+LIMIT 20
+```
+
+### 실습 10: 대학교 순위 (졸업생 수)
+
+```sparql
+SELECT ?university ?universityLabel ?alumniCount
+WHERE {
+    ?university wdt:P31 wd:Q3918 ;   # 대학교
+                wdt:P17 wd:Q884 ;    # 한국
+                wdt:P2196 ?alumniCount .  # 졸업생 수
+    
+    SERVICE wikibase:label {
+        bd:serviceParam wikibase:language "ko" .
+    }
+}
+ORDER BY DESC(?alumniCount)
+LIMIT 10
+```
+
+---
+
+## 15. 성능 최적화
+
+### 최적화 팁 10가지
+
+#### 1. 구체적인 패턴 먼저
+
+**❌ 나쁜 예:**
+```sparql
+SELECT ?person ?name
+WHERE {
+    ?person ?p ?o .       # 너무 일반적
+    ?person :name ?name .
+}
+```
+
+**✅ 좋은 예:**
+```sparql
+SELECT ?person ?name
+WHERE {
+    ?person :name ?name .  # 구체적
+    ?person a :Person .
+}
+```
+
+#### 2. LIMIT 사용
+
+**항상 LIMIT 추가** (특히 테스트 시):
+```sparql
+SELECT ?s ?p ?o
+WHERE {
+    ?s ?p ?o .
+}
+LIMIT 100
+```
+
+#### 3. FILTER 위치
+
+**❌ 나쁜 예:**
+```sparql
+WHERE {
+    ?person ?p ?o .
+    FILTER(?p = :name)     # 늦은 필터링
+}
+```
+
+**✅ 좋은 예:**
+```sparql
+WHERE {
+    ?person :name ?o .     # 패턴에 직접 명시
+}
+```
+
+#### 4. OPTIONAL 최소화
+
+**OPTIONAL은 비용이 큼** - 꼭 필요할 때만 사용
+
+#### 5. Property Paths 주의
+
+**❌ 나쁜 예:**
+```sparql
+?person :knows* ?friend .  # 전체 탐색
+```
+
+**✅ 좋은 예:**
+```sparql
+?person :knows{1,3} ?friend .  # 깊이 제한
+```
+
+#### 6. COUNT 최적화
+
+**❌ 나쁜 예:**
+```sparql
+SELECT ?company (COUNT(?person) AS ?count)
+WHERE {
+    ?person :worksAt ?company ;
+            :age ?age ;         # 불필요
+            :email ?email .     # 불필요
+}
+GROUP BY ?company
+```
+
+**✅ 좋은 예:**
+```sparql
+SELECT ?company (COUNT(?person) AS ?count)
+WHERE {
+    ?person :worksAt ?company .  # 필요한 것만
+}
+GROUP BY ?company
+```
+
+#### 7. DISTINCT 대신 GROUP BY
+
+**DISTINCT는 느림** - 가능하면 GROUP BY 사용
+
+#### 8. 인덱스 활용
+
+**Triple Store마다 다르지만, 일반적으로:**
+- Subject로 시작하는 패턴이 빠름
+- Object로 시작하는 패턴은 느림
+
+#### 9. Subquery 최소화
+
+**복잡한 Subquery는 비용이 큼**
+
+#### 10. UNION 대신 FILTER
+
+**❌ 나쁜 예:**
+```sparql
+{
+    ?person a :Employee .
+}
+UNION
+{
+    ?person a :Contractor .
+}
+```
+
+**✅ 좋은 예:**
+```sparql
+?person a ?type .
+FILTER(?type IN (:Employee, :Contractor))
+```
+
+### 쿼리 프로파일링
+
+**1. EXPLAIN (구현 의존적)**
+```sparql
+EXPLAIN
+SELECT ?person ?name
+WHERE {
+    ?person :name ?name .
+}
+```
+
+**2. 실행 시간 측정**
+- SPARQL Playground의 Timer 사용
+- 여러 번 실행해서 평균 측정
+
+**3. 단계별 테스트**
+- 작은 패턴부터 시작
+- 점진적으로 확장
+
+---
+
+## 16. 요약과 다음 단계
+
+### 핵심 정리
+
+**1. 4가지 쿼리 형식**
+- **SELECT:** 표 형태 결과
+- **CONSTRUCT:** RDF 그래프 생성
+- **ASK:** true/false
+- **DESCRIBE:** 자원 설명
+
+**2. 고급 기능**
+- **FILTER:** 조건 필터링
+- **OPTIONAL:** 선택적 매칭
+- **UNION:** 대안 패턴
+- **BIND:** 변수 바인딩
+
+**3. Property Paths**
+- `/` : 순차
+- `|` : 대안
+- `*` : 0회 이상
+- `+` : 1회 이상
+- `^` : 역방향
+
+**4. Aggregation**
+- COUNT, SUM, AVG, MIN, MAX
+- GROUP BY, HAVING
+- GROUP_CONCAT
+
+**5. Federation**
+- SERVICE로 외부 엔드포인트 쿼리
+- DBpedia, Wikidata 활용
+
+**6. 성능 최적화**
+- 구체적 패턴 먼저
+- LIMIT 사용
+- FILTER 위치 최적화
+- Property Paths 깊이 제한
+
+### 실전 체크리스트
+
+**쿼리 작성 시:**
+- [ ] 네임스페이스 선언
+- [ ] 명확한 Triple Pattern
+- [ ] LIMIT 추가 (테스트)
+- [ ] FILTER 최적화
+- [ ] OPTIONAL 필요성 검토
+- [ ] 성능 고려
+
+**DBpedia/Wikidata 사용 시:**
+- [ ] 엔드포인트 확인
+- [ ] 언어 필터 (LANG)
+- [ ] 서비스 라벨 사용
+- [ ] 타임아웃 고려
+
+### 다음 챕터
+
+**Chapter 5: 추론 엔진과 온톨로지 도구**
+
+온톨로지의 **마법을 경험**합니다:
+- RDFS vs OWL 추론 비교
+- 4가지 Reasoner (Pellet, HermiT, FaCT++, ELK)
+- Protégé 완전 가이드
+- Python/Java 프로그래밍
+- **Reasoning Engine 시뮬레이터로 실습!**
+
+---
+
+## 📝 연습 문제
+
+### 문제 1: 기본 SELECT
+
+다음 데이터에서 30세 이상인 사람의 이름을 조회하세요:
+
+```turtle
+:홍길동 :name "홍길동" ; :age 45 .
+:김철수 :name "김철수" ; :age 28 .
+:이영희 :name "이영희" ; :age 35 .
+```
+
+**정답:**
+```sparql
+SELECT ?name
+WHERE {
+    ?person :name ?name ;
+            :age ?age .
+    FILTER(?age >= 30)
+}
+```
+
+### 문제 2: Property Paths
+
+모든 조상을 찾는 쿼리를 작성하세요:
+
+**정답:**
+```sparql
+SELECT ?person ?ancestor
+WHERE {
+    ?person :name "홍길동" ;
+            :parent+ ?ancestor .
+}
+```
+
+### 문제 3: Aggregation
+
+회사별 평균 연봉을 계산하세요:
+
+**정답:**
+```sparql
+SELECT ?company (AVG(?salary) AS ?avgSalary)
+WHERE {
+    ?person :worksAt ?company ;
+            :salary ?salary .
+}
+GROUP BY ?company
+ORDER BY DESC(?avgSalary)
+```
+
+---
+
+## 🔗 참고 자료
+
+### W3C 표준
+1. SPARQL 1.1 Query: https://www.w3.org/TR/sparql11-query/
+2. SPARQL 1.1 Update: https://www.w3.org/TR/sparql11-update/
+3. SPARQL 1.1 Protocol: https://www.w3.org/TR/sparql11-protocol/
+
+### 실습 엔드포인트
+1. DBpedia: https://dbpedia.org/sparql
+2. Wikidata: https://query.wikidata.org/
+3. Bio2RDF: https://bio2rdf.org/sparql
+
+### 도구
+1. SPARQL Playground: https://kss.ai.kr/sparql-playground
+2. Yasgui: https://yasgui.triply.cc/
+3. Apache Jena: https://jena.apache.org/
+
+### 학습 자료
+1. SPARQL Tutorial: https://www.w3.org/2009/Talks/0615-qbe/
+2. Wikidata Query Examples: https://www.wikidata.org/wiki/Wikidata:SPARQL_query_service/queries/examples
+
+---
+
+**다음:** [Chapter 5: 추론 엔진과 온톨로지 도구](./chapter-05.md)
+
+**작성자:** jeromwolf (데이터공작소 TFT)  
+**작성일:** 2025-11-09  
+**버전:** 3.0 FINAL  
+**단어 수:** 약 6,800단어
