@@ -32,10 +32,7 @@ const nextConfig = {
 // MDX 설정
 const withMDX = require('@next/mdx')({
   extension: /\.mdx?$/,
-  options: {
-    remarkPlugins: [],
-    rehypePlugins: [],
-  },
+  options: {},
 });
 
 module.exports = withMDX(nextConfig);

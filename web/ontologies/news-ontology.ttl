@@ -1,0 +1,414 @@
+# ============================================================================
+# KSS News Ontology - 뉴스 온톨로지
+# Version: 1.0.0
+# 작성: 2025-11-11
+# 목적: 뉴스 기사와 기업 관계, 영향도를 표현하는 온톨로지
+# ============================================================================
+
+@prefix : <http://kss.ai.kr/ontology/news#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+# ============================================================================
+# 온톨로지 메타데이터
+# ============================================================================
+
+<http://kss.ai.kr/ontology/news#> a owl:Ontology ;
+    dcterms:title "KSS News Ontology"@en, "KSS 뉴스 온톨로지"@ko ;
+    dcterms:description "뉴스 기사, 기업, 영향도를 표현하는 온톨로지"@ko ;
+    dcterms:creator "KSS Platform" ;
+    dcterms:created "2025-11-11"^^xsd:date ;
+    owl:versionInfo "1.0.0" ;
+    rdfs:comment "이 온톨로지는 뉴스와 기업 관계를 표현하고 자동 추론합니다."@ko .
+
+# ============================================================================
+# 클래스 정의
+# ============================================================================
+
+# ---------- 기업 관련 ----------
+
+:Company a owl:Class ;
+    rdfs:label "기업"@ko, "Company"@en ;
+    rdfs:comment "상장 또는 비상장 기업 개체"@ko ;
+    skos:example "삼성전자, Apple, TSMC" .
+
+:ListedCompany a owl:Class ;
+    rdfs:subClassOf :Company ;
+    rdfs:label "상장기업"@ko, "Listed Company"@en ;
+    rdfs:comment "증권거래소에 상장된 기업"@ko .
+
+:PrivateCompany a owl:Class ;
+    rdfs:subClassOf :Company ;
+    rdfs:label "비상장기업"@ko, "Private Company"@en ;
+    owl:disjointWith :ListedCompany .
+
+# ---------- 뉴스 관련 ----------
+
+:NewsArticle a owl:Class ;
+    rdfs:label "뉴스 기사"@ko, "News Article"@en ;
+    rdfs:comment "뉴스 미디어에서 발행한 기사"@ko .
+
+:PositiveNews a owl:Class ;
+    rdfs:subClassOf :NewsArticle ;
+    rdfs:label "긍정 뉴스"@ko ;
+    rdfs:comment "긍정적 감성을 가진 뉴스 (sentiment > 0.6)"@ko .
+
+:NegativeNews a owl:Class ;
+    rdfs:subClassOf :NewsArticle ;
+    rdfs:label "부정 뉴스"@ko ;
+    rdfs:comment "부정적 감성을 가진 뉴스 (sentiment < 0.4)"@ko ;
+    owl:disjointWith :PositiveNews .
+
+:NeutralNews a owl:Class ;
+    rdfs:subClassOf :NewsArticle ;
+    rdfs:label "중립 뉴스"@ko ;
+    rdfs:comment "중립적 감성을 가진 뉴스 (0.4 <= sentiment <= 0.6)"@ko .
+
+# ---------- 감성 관련 ----------
+
+:Sentiment a owl:Class ;
+    rdfs:label "감성"@ko, "Sentiment"@en ;
+    rdfs:comment "뉴스의 감성 분류"@ko .
+
+:PositiveSentiment a owl:Class ;
+    rdfs:subClassOf :Sentiment ;
+    rdfs:label "긍정 감성"@ko .
+
+:NegativeSentiment a owl:Class ;
+    rdfs:subClassOf :Sentiment ;
+    rdfs:label "부정 감성"@ko ;
+    owl:disjointWith :PositiveSentiment .
+
+:NeutralSentiment a owl:Class ;
+    rdfs:subClassOf :Sentiment ;
+    rdfs:label "중립 감성"@ko .
+
+# ---------- 산업/섹터 ----------
+
+:Industry a owl:Class ;
+    rdfs:label "산업"@ko, "Industry"@en ;
+    rdfs:comment "기업이 속한 산업 분류"@ko .
+
+:Semiconductor a owl:Class ;
+    rdfs:subClassOf :Industry ;
+    rdfs:label "반도체"@ko, "Semiconductor"@en .
+
+:Automotive a owl:Class ;
+    rdfs:subClassOf :Industry ;
+    rdfs:label "자동차"@ko, "Automotive"@en .
+
+:Battery a owl:Class ;
+    rdfs:subClassOf :Industry ;
+    rdfs:label "배터리"@ko, "Battery"@en .
+
+:Biotechnology a owl:Class ;
+    rdfs:subClassOf :Industry ;
+    rdfs:label "바이오"@ko, "Biotechnology"@en .
+
+:Finance a owl:Class ;
+    rdfs:subClassOf :Industry ;
+    rdfs:label "금융"@ko, "Finance"@en .
+
+:Technology a owl:Class ;
+    rdfs:subClassOf :Industry ;
+    rdfs:label "IT/플랫폼"@ko, "Technology"@en .
+
+# ---------- 키워드 ----------
+
+:Keyword a owl:Class ;
+    rdfs:label "키워드"@ko, "Keyword"@en ;
+    rdfs:comment "뉴스에서 추출된 핵심 키워드"@ko .
+
+# ============================================================================
+# 데이터타입 속성 (Datatype Properties)
+# ============================================================================
+
+# ---------- 기본 정보 ----------
+
+:companyName a owl:DatatypeProperty ;
+    rdfs:domain :Company ;
+    rdfs:range xsd:string ;
+    rdfs:label "기업명"@ko, "Company Name"@en ;
+    rdfs:comment "기업의 공식 명칭"@ko .
+
+:ticker a owl:DatatypeProperty ;
+    rdfs:domain :Company ;
+    rdfs:range xsd:string ;
+    rdfs:label "티커"@ko, "Ticker"@en ;
+    rdfs:comment "증권 거래소 티커 심볼"@ko ;
+    skos:example "005930 (삼성전자)" .
+
+:marketCap a owl:DatatypeProperty ;
+    rdfs:domain :Company ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "시가총액"@ko, "Market Cap"@en ;
+    rdfs:comment "시가총액 (단위: 억원)"@ko .
+
+# ---------- 뉴스 속성 ----------
+
+:title a owl:DatatypeProperty ;
+    rdfs:domain :NewsArticle ;
+    rdfs:range xsd:string ;
+    rdfs:label "제목"@ko, "Title"@en .
+
+:description a owl:DatatypeProperty ;
+    rdfs:domain :NewsArticle ;
+    rdfs:range xsd:string ;
+    rdfs:label "설명"@ko, "Description"@en .
+
+:publishedAt a owl:DatatypeProperty ;
+    rdfs:domain :NewsArticle ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "발행일시"@ko, "Published At"@en .
+
+:sourceUrl a owl:DatatypeProperty ;
+    rdfs:domain :NewsArticle ;
+    rdfs:range xsd:anyURI ;
+    rdfs:label "출처 URL"@ko, "Source URL"@en .
+
+:sourceName a owl:DatatypeProperty ;
+    rdfs:domain :NewsArticle ;
+    rdfs:range xsd:string ;
+    rdfs:label "출처 이름"@ko, "Source Name"@en ;
+    skos:example "연합뉴스, Bloomberg, Reuters" .
+
+# ---------- 감성 점수 ----------
+
+:sentimentScore a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain :NewsArticle ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "감성 점수"@ko, "Sentiment Score"@en ;
+    rdfs:comment "감성 점수 (-1.0 ~ +1.0, -1: 매우 부정, +1: 매우 긍정)"@ko .
+
+# ---------- 영향도 ----------
+
+:directImpact a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain :NewsArticle ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "직접 영향도"@ko, "Direct Impact"@en ;
+    rdfs:comment "뉴스가 언급된 기업에 미치는 직접 영향도 (-100 ~ +100)"@ko .
+
+:indirectImpact a owl:DatatypeProperty ;
+    rdfs:domain :Company ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "간접 영향도"@ko, "Indirect Impact"@en ;
+    rdfs:comment "관련 기업의 뉴스로 인한 간접 영향도 (-100 ~ +100)"@ko .
+
+:sectorImpact a owl:DatatypeProperty ;
+    rdfs:domain :Industry ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "섹터 영향도"@ko, "Sector Impact"@en ;
+    rdfs:comment "해당 섹터 전체에 미치는 영향도"@ko .
+
+# ---------- 키워드 텍스트 ----------
+
+:keywordText a owl:DatatypeProperty ;
+    rdfs:domain :Keyword ;
+    rdfs:range xsd:string ;
+    rdfs:label "키워드 텍스트"@ko .
+
+# ============================================================================
+# 객체 속성 (Object Properties)
+# ============================================================================
+
+# ---------- 뉴스-기업 관계 ----------
+
+:mentions a owl:ObjectProperty ;
+    rdfs:domain :NewsArticle ;
+    rdfs:range :Company ;
+    rdfs:label "언급하다"@ko, "mentions"@en ;
+    rdfs:comment "뉴스 기사에 기업이 언급됨"@ko .
+
+:mainSubject a owl:ObjectProperty ;
+    rdfs:subPropertyOf :mentions ;
+    rdfs:label "주제 기업"@ko, "main subject"@en ;
+    rdfs:comment "뉴스 기사의 주요 주제인 기업"@ko ;
+    a owl:FunctionalProperty .
+
+# ---------- 기업 간 관계 ----------
+
+:hasSupplier a owl:ObjectProperty ;
+    rdfs:domain :Company ;
+    rdfs:range :Company ;
+    rdfs:label "공급업체"@ko, "has supplier"@en ;
+    rdfs:comment "A가 B로부터 부품/서비스를 공급받는 관계"@ko ;
+    owl:inverseOf :suppliesTo .
+
+:suppliesTo a owl:ObjectProperty ;
+    rdfs:domain :Company ;
+    rdfs:range :Company ;
+    rdfs:label "공급하다"@ko, "supplies to"@en ;
+    rdfs:comment "A가 B에게 부품/서비스를 공급하는 관계"@ko ;
+    owl:inverseOf :hasSupplier .
+
+:hasCompetitor a owl:ObjectProperty ;
+    rdfs:domain :Company ;
+    rdfs:range :Company ;
+    rdfs:label "경쟁사"@ko, "has competitor"@en ;
+    rdfs:comment "같은 시장에서 경쟁하는 기업"@ko ;
+    a owl:SymmetricProperty .
+
+:hasPartner a owl:ObjectProperty ;
+    rdfs:domain :Company ;
+    rdfs:range :Company ;
+    rdfs:label "파트너사"@ko, "has partner"@en ;
+    rdfs:comment "전략적 파트너 관계"@ko ;
+    a owl:SymmetricProperty .
+
+:hasCustomer a owl:ObjectProperty ;
+    rdfs:domain :Company ;
+    rdfs:range :Company ;
+    rdfs:label "고객사"@ko, "has customer"@en ;
+    owl:inverseOf :hasSupplier .
+
+# ---------- 기업-산업 관계 ----------
+
+:belongsToIndustry a owl:ObjectProperty ;
+    rdfs:domain :Company ;
+    rdfs:range :Industry ;
+    rdfs:label "산업에 속하다"@ko, "belongs to industry"@en ;
+    a owl:FunctionalProperty .
+
+# ---------- 뉴스-키워드 관계 ----------
+
+:hasKeyword a owl:ObjectProperty ;
+    rdfs:domain :NewsArticle ;
+    rdfs:range :Keyword ;
+    rdfs:label "키워드"@ko, "has keyword"@en .
+
+# ---------- 뉴스-감성 관계 ----------
+
+:hasSentiment a owl:ObjectProperty ;
+    rdfs:domain :NewsArticle ;
+    rdfs:range :Sentiment ;
+    rdfs:label "감성"@ko, "has sentiment"@en ;
+    a owl:FunctionalProperty .
+
+# ============================================================================
+# 추론 규칙 (OWL Axioms)
+# ============================================================================
+
+# ---------- 간접 영향 추론 ----------
+# 규칙: 공급업체에 부정 뉴스 → 고객사에 간접 부정 영향
+# 예: ASML 부정 뉴스 → 삼성전자 간접 영향
+
+:indirectImpactFromSupplier a owl:ObjectProperty ;
+    rdfs:label "공급업체 간접 영향"@ko ;
+    owl:propertyChainAxiom ( :hasSupplier :directImpact ) ;
+    rdfs:comment "공급업체의 직접 영향도가 고객사에 간접 영향으로 전파됨"@ko .
+
+# ---------- 경쟁사 역방향 영향 ----------
+# 규칙: A사에 긍정 뉴스 → 경쟁사 B에 부정 영향 (제로섬)
+# 예: 삼성전자 수주 성공 → SK하이닉스 기회 감소
+
+:competitorReverseImpact a owl:ObjectProperty ;
+    rdfs:label "경쟁사 역방향 영향"@ko ;
+    rdfs:comment "경쟁사의 호재는 자사에 악재가 될 수 있음"@ko .
+
+# ---------- 파트너사 동반 영향 ----------
+# 규칙: 파트너사에 호재 → 동반 상승
+# 예: Qualcomm AI 칩 호황 → ARM 라이센스 매출 증가
+
+:partnerSynergy a owl:ObjectProperty ;
+    rdfs:label "파트너 시너지"@ko ;
+    rdfs:comment "파트너사의 성공이 함께 공유됨"@ko ;
+    a owl:SymmetricProperty .
+
+# ============================================================================
+# 감성 자동 분류 규칙
+# ============================================================================
+
+# 긍정 뉴스: sentimentScore > 0.6
+[ a owl:Class ;
+  owl:intersectionOf (
+    :NewsArticle
+    [ a owl:Restriction ;
+      owl:onProperty :sentimentScore ;
+      owl:someValuesFrom [
+        a rdfs:Datatype ;
+        owl:onDatatype xsd:decimal ;
+        owl:withRestrictions ( [ xsd:minExclusive "0.6"^^xsd:decimal ] )
+      ]
+    ]
+  ) ;
+  rdfs:subClassOf :PositiveNews
+] .
+
+# 부정 뉴스: sentimentScore < 0.4
+[ a owl:Class ;
+  owl:intersectionOf (
+    :NewsArticle
+    [ a owl:Restriction ;
+      owl:onProperty :sentimentScore ;
+      owl:someValuesFrom [
+        a rdfs:Datatype ;
+        owl:onDatatype xsd:decimal ;
+        owl:withRestrictions ( [ xsd:maxExclusive "0.4"^^xsd:decimal ] )
+      ]
+    ]
+  ) ;
+  rdfs:subClassOf :NegativeNews
+] .
+
+# ============================================================================
+# 제약 조건 (Constraints)
+# ============================================================================
+
+# 모든 뉴스는 최소 1개 이상의 기업을 언급해야 함
+:NewsArticle rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty :mentions ;
+    owl:minCardinality "1"^^xsd:nonNegativeInteger
+] .
+
+# 모든 상장기업은 티커를 가져야 함
+:ListedCompany rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty :ticker ;
+    owl:cardinality "1"^^xsd:nonNegativeInteger
+] .
+
+# 감성 점수는 -1.0 ~ 1.0 사이
+:sentimentScore rdfs:range [
+    a rdfs:Datatype ;
+    owl:onDatatype xsd:decimal ;
+    owl:withRestrictions (
+        [ xsd:minInclusive "-1.0"^^xsd:decimal ]
+        [ xsd:maxInclusive "1.0"^^xsd:decimal ]
+    )
+] .
+
+# 영향도는 -100 ~ 100 사이
+:directImpact rdfs:range [
+    a rdfs:Datatype ;
+    owl:onDatatype xsd:decimal ;
+    owl:withRestrictions (
+        [ xsd:minInclusive "-100.0"^^xsd:decimal ]
+        [ xsd:maxInclusive "100.0"^^xsd:decimal ]
+    )
+] .
+
+# ============================================================================
+# 주석 및 문서화
+# ============================================================================
+
+: rdfs:comment """
+이 온톨로지는 다음을 제공합니다:
+
+1. 뉴스와 기업의 관계 표현
+2. 공급망 관계를 통한 간접 영향도 자동 추론
+3. 감성 분석 기반 뉴스 자동 분류
+4. 경쟁사/파트너사 관계를 통한 시장 영향 분석
+
+사용 예:
+- 뉴스 수집 → RDF Triple 생성 → 추론 엔진 실행 → SPARQL 쿼리
+- Apache Jena Fuseki, GraphDB, Virtuoso 등과 호환
+
+라이센스: MIT
+문의: contact@kss.ai.kr
+"""@ko .
