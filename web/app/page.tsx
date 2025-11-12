@@ -63,6 +63,24 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* New Service Section */}
+      <section className="container py-16 md:py-20">
+        <div className="flex flex-col items-center gap-6 p-8 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+          <Badge variant="secondary" className="px-4 py-1">
+            NEW - Phase 2 출시
+          </Badge>
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl text-center">
+            투자자를 위한 AI 인사이트
+          </h2>
+          <p className="max-w-[600px] text-center text-lg opacity-90">
+            관심 기업을 등록하고 매일 아침 AI가 분석한 맞춤형 투자 인사이트를 받아보세요
+          </p>
+          <Button asChild size="lg" variant="secondary">
+            <Link href="/login">지금 시작하기 →</Link>
+          </Button>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="container py-16 md:py-20">
         <div className="text-center mb-10">

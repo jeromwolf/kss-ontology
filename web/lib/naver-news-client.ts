@@ -34,17 +34,19 @@ interface FetchOptions {
 }
 
 class NaverNewsClient {
-  private readonly clientId: string
-  private readonly clientSecret: string
+  private clientId: string | undefined
+  private clientSecret: string | undefined
   private readonly baseUrl = 'https://openapi.naver.com/v1/search/news.json'
   private readonly maxRetries = 3
 
   constructor() {
-    this.clientId = process.env.NAVER_CLIENT_ID || ''
-    this.clientSecret = process.env.NAVER_CLIENT_SECRET || ''
+    // Lazy initialization to support scripts that load env variables after module import
+  }
 
+  private ensureCredentials() {
     if (!this.clientId || !this.clientSecret) {
-      console.error('[NaverNewsClient] Missing API credentials')
+      this.clientId = process.env.NAVER_CLIENT_ID
+      this.clientSecret = process.env.NAVER_CLIENT_SECRET
     }
   }
 
@@ -54,6 +56,8 @@ class NaverNewsClient {
    */
   async search(options: FetchOptions): Promise<NaverNewsResponse> {
     const { query, display = 10, start = 1, sort = 'date' } = options
+
+    this.ensureCredentials()
 
     if (!this.clientId || !this.clientSecret) {
       throw new Error('Naver API credentials not configured')

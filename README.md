@@ -155,15 +155,16 @@ GET /api/news/search?q=삼성전자&display=10
 
 ### Phase 2: 실제 온톨로지 인프라 (진행 중 🚀)
 - ✅ PostgreSQL Triple Store
-- ✅ Triple 추출 엔진
+- ✅ Triple 추출 엔진 (추출 성공률 100%)
 - ✅ SPARQL-like 쿼리 엔진
 - ✅ Reasoning Engine
 - ✅ 네이버 뉴스 API 연동
 - ✅ 자동 Triple 추출 및 저장
+- ✅ Knowledge Graph 시각화 (vis-network)
+- ✅ 기업 온톨로지 정교화 (20개 기업 별칭)
 - 🔄 대시보드 신뢰도 표시
 - 📋 사용자 피드백 UI
 - 📋 일일 배치 작업
-- 📋 Knowledge Graph 시각화
 
 ### Phase 3: 프로덕션 서비스 (계획)
 - 사용자 인증 및 개인화
@@ -173,15 +174,18 @@ GET /api/news/search?q=삼성전자&display=10
 
 ## 테스트 결과
 
-최근 테스트 (2025-01-11):
+최근 테스트 (2025-01-12):
 
 ```
 📰 뉴스 수집: 삼성전자 관련 5개 기사
-🤖 Triple 추출: 2개
-   - Samsung → partners_with → SKHynix (80% 신뢰도)
+🤖 Triple 추출: 5개 (100% 성공률) ✅
    - Samsung → competes_with → SKHynix (100% 신뢰도)
-💾 DB 저장: 1개 (새로운 관계)
-📊 총 Triple: 52개 (평균 신뢰도 0.985)
+   - Samsung → influences → Apple (70% 신뢰도)
+   - Samsung → influences → SKHynix (70% 신뢰도)
+   - Samsung → influences → NVIDIA (70% 신뢰도)
+💾 DB 저장: 4개 (새로운 관계)
+📊 총 Triple: 56개 (평균 신뢰도 0.964)
+📈 개선: 추출 성공률 40% → 100% (별칭 확장)
 ```
 
 ## 기여

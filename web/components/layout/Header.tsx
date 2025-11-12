@@ -9,6 +9,7 @@ import { siteConfig } from "@/config/site"
 const navigation = [
   { name: "홈", href: "/" },
   { name: "챕터", href: "/chapters" },
+  { name: "투자 인사이트", href: "/login" },
   { name: "실전 서비스", href: "/services/news-ontology" },
   { name: "시뮬레이터", href: "/simulators" },
   { name: "로드맵", href: "/roadmap" },

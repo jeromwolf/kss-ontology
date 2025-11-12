@@ -45,6 +45,7 @@ export const KOREAN_COMPANIES: CompanyEntity[] = [
   {
     uri: 'kss:Company_Samsung',
     name: '삼성전자',
+    aliases: ['삼성', 'Samsung', 'Samsung Electronics', 'SAMSUNG', '삼성전자주식회사', '삼성전자㈜', 'SEC'],
     industry: [
       { uri: 'kss:Industry_Semiconductor', name: '반도체', relatedIndustries: ['kss:Industry_Electronics'] },
       { uri: 'kss:Industry_Electronics', name: '전자제품', relatedIndustries: ['kss:Industry_Semiconductor'] }
@@ -57,6 +58,7 @@ export const KOREAN_COMPANIES: CompanyEntity[] = [
   {
     uri: 'kss:Company_SKHynix',
     name: 'SK하이닉스',
+    aliases: ['하이닉스', 'SKHynix', 'SK Hynix', 'SK하닉', 'Hynix', 'HYNIX', 'SK하이닉스㈜'],
     industry: [
       { uri: 'kss:Industry_Semiconductor', name: '반도체', relatedIndustries: ['kss:Industry_Memory'] }
     ],
@@ -68,6 +70,7 @@ export const KOREAN_COMPANIES: CompanyEntity[] = [
   {
     uri: 'kss:Company_Hyundai',
     name: '현대자동차',
+    aliases: ['현대차', '현대', 'Hyundai', 'Hyundai Motor', 'HYUNDAI', '현대자동차㈜', 'HMC'],
     industry: [
       { uri: 'kss:Industry_Automotive', name: '자동차', relatedIndustries: ['kss:Industry_EV'] }
     ],
@@ -79,6 +82,7 @@ export const KOREAN_COMPANIES: CompanyEntity[] = [
   {
     uri: 'kss:Company_LGChem',
     name: 'LG화학',
+    aliases: ['LG Chem', 'LGChem', 'LGCHEM', '엘지화학', 'LG화학㈜', 'LG'],
     industry: [
       { uri: 'kss:Industry_Battery', name: '배터리', relatedIndustries: ['kss:Industry_EV'] }
     ],
@@ -90,6 +94,7 @@ export const KOREAN_COMPANIES: CompanyEntity[] = [
   {
     uri: 'kss:Company_NAVER',
     name: '네이버',
+    aliases: ['NAVER', 'Naver', 'naver', '네이버㈜', 'NAVER Corp'],
     industry: [
       { uri: 'kss:Industry_Internet', name: '인터넷', relatedIndustries: ['kss:Industry_AI'] }
     ],
@@ -101,6 +106,7 @@ export const KOREAN_COMPANIES: CompanyEntity[] = [
   {
     uri: 'kss:Company_Kakao',
     name: '카카오',
+    aliases: ['Kakao', 'KAKAO', 'kakao', '카카오㈜', 'Kakao Corp', '다음카카오'],
     industry: [
       { uri: 'kss:Industry_Internet', name: '인터넷', relatedIndustries: ['kss:Industry_Fintech'] }
     ],
@@ -112,6 +118,7 @@ export const KOREAN_COMPANIES: CompanyEntity[] = [
   {
     uri: 'kss:Company_Celltrion',
     name: '셀트리온',
+    aliases: ['Celltrion', 'CELLTRION', 'celltrion', '셀트리온㈜', '셀트리온그룹'],
     industry: [
       { uri: 'kss:Industry_Bio', name: '바이오', relatedIndustries: ['kss:Industry_Pharma'] }
     ],
@@ -123,6 +130,7 @@ export const KOREAN_COMPANIES: CompanyEntity[] = [
   {
     uri: 'kss:Company_POSCO',
     name: 'POSCO',
+    aliases: ['포스코', 'Posco', 'posco', 'POSCO㈜', '포항제철'],
     industry: [
       { uri: 'kss:Industry_Steel', name: '철강', relatedIndustries: ['kss:Industry_Manufacturing'] }
     ],
@@ -147,6 +155,7 @@ export const KOREAN_COMPANIES: CompanyEntity[] = [
   {
     uri: 'kss:Company_Apple',
     name: 'Apple',
+    aliases: ['애플', 'APPLE', 'apple', 'Apple Inc', '애플사'],
     industry: [
       { uri: 'kss:Industry_Electronics', name: '전자제품', relatedIndustries: ['kss:Industry_Semiconductor'] }
     ],
@@ -158,6 +167,7 @@ export const KOREAN_COMPANIES: CompanyEntity[] = [
   {
     uri: 'kss:Company_Google',
     name: 'Google',
+    aliases: ['구글', 'GOOGLE', 'google', 'Alphabet', '알파벳', 'Google Inc'],
     industry: [
       { uri: 'kss:Industry_Internet', name: '인터넷', relatedIndustries: ['kss:Industry_AI'] }
     ],
@@ -169,6 +179,7 @@ export const KOREAN_COMPANIES: CompanyEntity[] = [
   {
     uri: 'kss:Company_Microsoft',
     name: 'Microsoft',
+    aliases: ['마이크로소프트', 'MICROSOFT', 'microsoft', 'MS', 'Microsoft Corp'],
     industry: [
       { uri: 'kss:Industry_Software', name: '소프트웨어', relatedIndustries: ['kss:Industry_AI', 'kss:Industry_Cloud'] }
     ],
@@ -180,6 +191,7 @@ export const KOREAN_COMPANIES: CompanyEntity[] = [
   {
     uri: 'kss:Company_Amazon',
     name: 'Amazon',
+    aliases: ['아마존', 'AMAZON', 'amazon', 'Amazon.com', 'AWS'],
     industry: [
       { uri: 'kss:Industry_Ecommerce', name: '이커머스', relatedIndustries: ['kss:Industry_Cloud', 'kss:Industry_AI'] }
     ],
@@ -191,6 +203,7 @@ export const KOREAN_COMPANIES: CompanyEntity[] = [
   {
     uri: 'kss:Company_NVIDIA',
     name: 'NVIDIA',
+    aliases: ['엔비디아', 'Nvidia', 'nvidia', 'NVDA'],
     industry: [
       { uri: 'kss:Industry_Semiconductor', name: '반도체', relatedIndustries: ['kss:Industry_AI'] }
     ],
@@ -202,6 +215,7 @@ export const KOREAN_COMPANIES: CompanyEntity[] = [
   {
     uri: 'kss:Company_TSMC',
     name: 'TSMC',
+    aliases: ['대만반도체', 'Taiwan Semiconductor', 'TSM', 'TSMC㈜'],
     industry: [
       { uri: 'kss:Industry_Semiconductor', name: '반도체', relatedIndustries: ['kss:Industry_Manufacturing'] }
     ],
@@ -213,6 +227,7 @@ export const KOREAN_COMPANIES: CompanyEntity[] = [
   {
     uri: 'kss:Company_Intel',
     name: 'Intel',
+    aliases: ['인텔', 'INTEL', 'intel', 'Intel Corporation', '인텔사'],
     industry: [
       { uri: 'kss:Industry_Semiconductor', name: '반도체', relatedIndustries: ['kss:Industry_AI'] }
     ],
@@ -224,6 +239,7 @@ export const KOREAN_COMPANIES: CompanyEntity[] = [
   {
     uri: 'kss:Company_AMD',
     name: 'AMD',
+    aliases: ['Advanced Micro Devices', 'amd'],
     industry: [
       { uri: 'kss:Industry_Semiconductor', name: '반도체', relatedIndustries: ['kss:Industry_AI'] }
     ],
@@ -235,6 +251,7 @@ export const KOREAN_COMPANIES: CompanyEntity[] = [
   {
     uri: 'kss:Company_BYD',
     name: 'BYD',
+    aliases: ['비야디', 'BYD Auto', 'Build Your Dreams'],
     industry: [
       { uri: 'kss:Industry_EV', name: '전기차', relatedIndustries: ['kss:Industry_Battery'] }
     ],
@@ -246,6 +263,7 @@ export const KOREAN_COMPANIES: CompanyEntity[] = [
   {
     uri: 'kss:Company_Panasonic',
     name: 'Panasonic',
+    aliases: ['파나소닉', 'PANASONIC', 'panasonic'],
     industry: [
       { uri: 'kss:Industry_Battery', name: '배터리', relatedIndustries: ['kss:Industry_Electronics'] }
     ],
@@ -257,6 +275,7 @@ export const KOREAN_COMPANIES: CompanyEntity[] = [
   {
     uri: 'kss:Company_GM',
     name: 'GM',
+    aliases: ['General Motors', 'GM', '제너럴모터스', 'GMC', '지엠'],
     industry: [
       { uri: 'kss:Industry_Automotive', name: '자동차', relatedIndustries: ['kss:Industry_EV'] }
     ],
@@ -268,6 +287,7 @@ export const KOREAN_COMPANIES: CompanyEntity[] = [
   {
     uri: 'kss:Company_Dell',
     name: 'Dell',
+    aliases: ['DELL', 'dell', '델', 'Dell Inc', 'Dell Technologies'],
     industry: [
       { uri: 'kss:Industry_Electronics', name: '전자제품', relatedIndustries: ['kss:Industry_Semiconductor'] }
     ],
