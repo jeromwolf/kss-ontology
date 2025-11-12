@@ -231,7 +231,9 @@ async function generateOntologyInsight(companyName: string): Promise<OntologyIns
       predicate: triple.predicate.replace('kss:', '') as any,
       object: triple.object,
       strength: triple.confidence,
-      description: `[DB 추출] 신뢰도 ${(triple.confidence * 100).toFixed(0)}% - ${triple.validatedBy === 'baseline' ? '검증됨' : '추정'}`
+      description: `[DB 추출] 신뢰도 ${(triple.confidence * 100).toFixed(0)}% - ${triple.validatedBy === 'baseline' ? '검증됨' : '추정'}`,
+      confidence: triple.confidence,
+      validatedBy: triple.validatedBy
     }))
   } catch (error) {
     console.error('Failed to fetch DB relations:', error)

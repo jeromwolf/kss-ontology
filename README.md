@@ -162,8 +162,8 @@ GET /api/news/search?q=삼성전자&display=10
 - ✅ 자동 Triple 추출 및 저장
 - ✅ Knowledge Graph 시각화 (vis-network)
 - ✅ 기업 온톨로지 정교화 (20개 기업 별칭)
-- 🔄 대시보드 신뢰도 표시
-- 📋 사용자 피드백 UI
+- ✅ 대시보드 신뢰도 표시 (색상 코딩, 검증 출처 배지)
+- 🔄 사용자 피드백 UI
 - 📋 일일 배치 작업
 
 ### Phase 3: 프로덕션 서비스 (계획)

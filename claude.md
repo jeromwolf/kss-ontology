@@ -339,3 +339,154 @@ export function findCompanyEntity(companyName: string) {
 - Option A (별칭 확장): 즉시 적용 가능, 리스크 없음, 큰 효과
 - Option B (경제 지표): 3-4시간 작업, 복잡도 높음
 - 작은 개선부터 시작해 검증 후 확장하는 전략이 효과적
+## 2025-01-13: 대시보드 신뢰도 표시 기능 구현 (Phase 2 계속)
+
+### 🎯 목표
+대시보드에서 온톨로지 데이터의 신뢰도와 검증 출처를 명확하게 표시하여 투명성 향상
+
+### ✅ 완료된 작업
+
+#### 1. 데이터 구조 확장
+
+**CompanyRelation 인터페이스 업데이트** (`lib/ontology/company-ontology.ts:25-33`):
+```typescript
+export interface CompanyRelation {
+  subject: string
+  predicate: RelationType
+  object: string
+  strength: number
+  description: string
+  confidence?: number           // 신뢰도 0-1 (추가)
+  validatedBy?: 'baseline' | 'gpt' | 'user'  // 검증 출처 (추가)
+}
+```
+
+**신뢰도 데이터 보존** (`lib/services/insight-generator.ts:229-237`):
+- DB Triple → CompanyRelation 변환 시 confidence와 validatedBy 보존
+- 기존: description 문자열에만 포함
+- 개선: 구조화된 데이터로 UI까지 전달
+
+#### 2. UI 신뢰도 표시 시스템 (`app/dashboard/page.tsx`)
+
+**색상 코딩 시스템** (211-217줄):
+| 신뢰도 | 색상 | 의미 |
+|--------|------|------|
+| 90%+ | 녹색 | 매우 높음 (베이스라인) |
+| 80-89% | 파란색 | 높음 |
+| 70-79% | 노란색 | 중간 (GPT 기본값) |
+| <70% | 주황색 | 낮음 |
+
+**검증 출처 배지** (219-230줄):
+- **검증됨** (녹색): 베이스라인 데이터 (100% 신뢰도)
+- **GPT 추정** (보라색): GPT-4o-mini 뉴스 추출 (≤85%)
+- **사용자 확인** (파란색): 사용자 직접 검증 (향후 구현)
+
+#### 3. 관계 표시 UI 개선 (556-589줄)
+
+**Before**:
+```tsx
+<div className="text-xs">
+  <span className="font-medium">{rel.predicate}</span>: {rel.description}
+</div>
+```
+
+**After**:
+```tsx
+<div className="px-3 py-2 rounded-lg border">
+  <div className="flex items-center justify-between">
+    <span className="font-medium">{rel.predicate}</span>
+    <div className="flex items-center gap-1">
+      {/* 신뢰도 백분율 */}
+      <span className={getConfidenceColor(rel.confidence)}>
+        {(rel.confidence * 100).toFixed(0)}%
+      </span>
+      {/* 검증 출처 배지 */}
+      <span className={validationBadge.color}>
+        {validationBadge.label}
+      </span>
+    </div>
+  </div>
+  <div className="text-gray-600">{rel.description}</div>
+</div>
+```
+
+#### 4. 신뢰도 범례 추가 (627-654줄)
+
+- 신뢰도 색상 코드 설명 (4단계)
+- 검증 출처 배지 설명
+- 온톨로지 섹션 하단에 배치
+
+### 📊 UI 개선 효과
+
+**투명성 향상**:
+- 데이터 출처 명확히 구분 (베이스라인 vs GPT 추출)
+- 신뢰도를 백분율과 색상으로 직관적 표시
+- 사용자가 정보의 품질을 즉시 판단 가능
+
+**사용자 경험**:
+- Before: "이 관계가 얼마나 신뢰할 수 있나?"
+- After: 한눈에 신뢰도 90%+, 베이스라인 검증 확인 가능
+
+**예시 화면**:
+```
+기업 관계
+┌──────────────────────────────────────────────────┐
+│ competes with                    100%  [검증됨]  │
+│ [DB 추출] 신뢰도 100% - 검증됨                    │
+└──────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────┐
+│ influences                        70%  [GPT 추정] │
+│ [DB 추출] 신뢰도 70% - 추정                       │
+└──────────────────────────────────────────────────┘
+
+신뢰도 범례
+[90%+] 매우 높음   [80-89%] 높음
+[70-79%] 중간     [<70%] 낮음
+
+[검증됨] 베이스라인 데이터  [GPT 추정] 뉴스에서 추출
+```
+
+### 🔧 기술적 세부사항
+
+**수정된 파일**:
+1. `lib/ontology/company-ontology.ts` - CompanyRelation 인터페이스 확장
+2. `lib/services/insight-generator.ts` - 신뢰도 데이터 보존
+3. `app/dashboard/page.tsx` - UI 신뢰도 표시 시스템
+
+**코드 변경 요약**:
+- 인터페이스 확장: +2 필드 (confidence, validatedBy)
+- 데이터 파이프라인: DB → Service → UI 전체 경로 신뢰도 데이터 보존
+- UI 컴포넌트: +3 함수 (getConfidenceColor, getValidationBadge, 범례 섹션)
+- 코드 라인 수: +80줄 (순증)
+
+**성능 영향**: 없음 (데이터 구조 확장만, 쿼리 변경 없음)
+
+### 💡 교훈
+
+**1. 데이터 투명성의 중요성**
+- AI 생성 콘텐츠는 신뢰도 표시가 필수
+- 사용자가 데이터 품질을 판단할 수 있어야 함
+- 투명성이 신뢰도를 높임
+
+**2. 점진적 UI 개선**
+- 기능 우선 → 투명성 추가 → 사용자 피드백 순서
+- 단계별로 가치 검증 후 확장
+
+**3. 구조화된 데이터의 가치**
+- 초기: description 문자열에 신뢰도 정보
+- 개선: 구조화된 필드로 분리
+- 결과: UI에서 유연하게 활용 가능
+
+### 📋 Phase 2 남은 작업
+
+- ✅ PostgreSQL Triple Store
+- ✅ Triple 추출 엔진 (100% 성공률)
+- ✅ SPARQL-like 쿼리 엔진
+- ✅ Reasoning Engine
+- ✅ 네이버 뉴스 API 연동
+- ✅ Knowledge Graph 시각화
+- ✅ 기업 온톨로지 정교화 (20개 기업 별칭)
+- ✅ **대시보드 신뢰도 표시**
+- 🔄 사용자 피드백 UI (Next)
+- 📋 일일 배치 작업
+

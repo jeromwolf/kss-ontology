@@ -28,6 +28,8 @@ export interface CompanyRelation {
   object: string // 대상 기업 URI
   strength: number // 관계 강도 0-1
   description: string
+  confidence?: number // 신뢰도 0-1 (온톨로지 DB에서 추출된 경우)
+  validatedBy?: 'baseline' | 'gpt' | 'user' // 검증 출처
 }
 
 export type RelationType =

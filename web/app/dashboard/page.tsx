@@ -208,6 +208,27 @@ export default function DashboardPage() {
     }
   }
 
+  const getConfidenceColor = (confidence?: number) => {
+    if (!confidence) return 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+    if (confidence >= 0.9) return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+    if (confidence >= 0.8) return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+    if (confidence >= 0.7) return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+    return 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
+  }
+
+  const getValidationBadge = (validatedBy?: 'baseline' | 'gpt' | 'user') => {
+    switch (validatedBy) {
+      case 'baseline':
+        return { label: '검증됨', color: 'bg-green-600 text-white' }
+      case 'gpt':
+        return { label: 'GPT 추정', color: 'bg-purple-600 text-white' }
+      case 'user':
+        return { label: '사용자 확인', color: 'bg-blue-600 text-white' }
+      default:
+        return { label: '베이스라인', color: 'bg-gray-600 text-white' }
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -535,12 +556,34 @@ export default function DashboardPage() {
                           {company.ontologyInsight.relations.length > 0 && (
                             <div className="mb-3">
                               <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">기업 관계</div>
-                              <div className="space-y-1">
-                                {company.ontologyInsight.relations.map((rel, i) => (
-                                  <div key={i} className="text-xs text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 px-2 py-1 rounded">
-                                    <span className="font-medium">{rel.predicate.replace(/_/g, ' ')}</span>: {rel.description}
-                                  </div>
-                                ))}
+                              <div className="space-y-2">
+                                {company.ontologyInsight.relations.map((rel, i) => {
+                                  const validationBadge = getValidationBadge(rel.validatedBy)
+                                  return (
+                                    <div key={i} className="text-xs bg-white dark:bg-gray-800 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700">
+                                      <div className="flex items-center justify-between mb-1">
+                                        <span className="font-medium text-gray-900 dark:text-gray-100">
+                                          {rel.predicate.replace(/_/g, ' ')}
+                                        </span>
+                                        <div className="flex items-center gap-1">
+                                          {rel.confidence !== undefined && (
+                                            <span className={`px-2 py-0.5 rounded text-xs font-medium ${getConfidenceColor(rel.confidence)}`}>
+                                              {(rel.confidence * 100).toFixed(0)}%
+                                            </span>
+                                          )}
+                                          {rel.validatedBy && (
+                                            <span className={`px-2 py-0.5 rounded text-xs font-medium ${validationBadge.color}`}>
+                                              {validationBadge.label}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <div className="text-gray-600 dark:text-gray-400">
+                                        {rel.description}
+                                      </div>
+                                    </div>
+                                  )
+                                })}
                               </div>
                             </div>
                           )}
@@ -576,10 +619,39 @@ export default function DashboardPage() {
 
                           {/* Knowledge Graph Info */}
                           {company.ontologyInsight.knowledgeGraph && (
-                            <div className="text-xs text-gray-600 dark:text-gray-400">
+                            <div className="text-xs text-gray-600 dark:text-gray-400 mb-3">
                               지식 그래프: {company.ontologyInsight.knowledgeGraph.nodes.length} 노드, {company.ontologyInsight.knowledgeGraph.edges.length} 관계
                             </div>
                           )}
+
+                          {/* Confidence Legend */}
+                          <div className="pt-3 border-t border-blue-200 dark:border-blue-800">
+                            <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">신뢰도 범례</div>
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div className="flex items-center gap-1">
+                                <span className="px-2 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">90%+</span>
+                                <span className="text-gray-600 dark:text-gray-400">매우 높음</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">80-89%</span>
+                                <span className="text-gray-600 dark:text-gray-400">높음</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className="px-2 py-0.5 rounded bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">70-79%</span>
+                                <span className="text-gray-600 dark:text-gray-400">중간</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className="px-2 py-0.5 rounded bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400">&lt;70%</span>
+                                <span className="text-gray-600 dark:text-gray-400">낮음</span>
+                              </div>
+                            </div>
+                            <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                              <span className="px-2 py-0.5 rounded bg-green-600 text-white">검증됨</span>
+                              <span className="text-gray-600 dark:text-gray-400">베이스라인 데이터</span>
+                              <span className="px-2 py-0.5 rounded bg-purple-600 text-white">GPT 추정</span>
+                              <span className="text-gray-600 dark:text-gray-400">뉴스에서 추출</span>
+                            </div>
+                          </div>
                         </div>
                       )}
 
