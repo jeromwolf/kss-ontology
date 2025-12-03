@@ -1,20 +1,90 @@
 # KSS Ontology 🔗
 
-> **세계에서 가장 깊이 있는 인터랙티브 온톨로지 교육 플랫폼**
+> **FDE Academy + SMB Foundry Platform**
+>
+> Forward Deployed Engineer 교육 및 중소기업용 온톨로지 플랫폼
 
-[![Status](https://img.shields.io/badge/status-complete-brightgreen)]()
+[![Status](https://img.shields.io/badge/status-active-brightgreen)]()
 [![License](https://img.shields.io/badge/license-MIT-blue)]()
-[![Progress](https://img.shields.io/badge/progress-10%2F10%20chapters-brightgreen)]()
-[![Words](https://img.shields.io/badge/words-61%2C200-blue)]()
+[![Phase](https://img.shields.io/badge/phase-research-yellow)]()
 
-## 🎉 프로젝트 완료!
+## 🎯 프로젝트 비전
 
-**10개 챕터 완성 (2025-11-09)**
-- ✅ 61,200단어
-- ✅ 4개 프로덕션 시뮬레이터
-- ✅ 150+ 코드 예제
-- ✅ 30+ 기업 사례
-- ✅ 10개 실습 프로젝트
+**Two-Track Strategy for Unicorn:**
+1. **FDE Academy**: Forward Deployed Engineer 교육 플랫폼
+2. **SMB Foundry**: 중소기업을 위한 Palantir Foundry 스타일 플랫폼
+
+### 핵심 원칙
+> "가짜는 절대 안돼" - 실제 산업 표준 온톨로지와 실무 사례 기반
+
+---
+
+## 📊 현재 진행 상황 (2025-12-03)
+
+### Phase 1: 기초 인프라 ✅
+- PostgreSQL Triple Store
+- SPARQL-like 쿼리 엔진
+- Reasoning Engine
+- Knowledge Graph 시각화
+
+### Phase 2: FDE 연구 🔄
+- ✅ 6개 산업 케이스 스터디 (헬스케어, 금융, 제조, 공급망, 바이오, 국방)
+- ✅ 시뮬레이터 검토 (KSS-Fresh 100+, Flux-Ontology 36 Phase)
+- ✅ 도메인 지식 자료집 작성
+- ✅ FIBO (금융), FHIR (의료) 심층 분석
+- 📋 커리큘럼 초안 작성 (Next)
+
+---
+
+## 📚 주요 문서
+
+### 도메인 지식
+| 문서 | 설명 |
+|------|------|
+| [DOMAIN_KNOWLEDGE_RESOURCES.md](./DOMAIN_KNOWLEDGE_RESOURCES.md) | 도메인 지식 수집 전략 |
+| [FIBO_DEEP_DIVE.md](./FIBO_DEEP_DIVE.md) | 금융 온톨로지 심층 분석 |
+| [FHIR_DEEP_DIVE.md](./FHIR_DEEP_DIVE.md) | 의료 데이터 표준 심층 분석 |
+
+### 산업별 온톨로지
+| 산업 | 핵심 온톨로지 | 상태 |
+|------|--------------|------|
+| 금융 | FIBO (2,457 클래스) | ✅ 분석 완료 |
+| 의료 | FHIR (157 리소스) | ✅ 분석 완료 |
+| 바이오 | Gene Ontology | 📋 예정 |
+| 사이버보안 | MITRE ATT&CK | 📋 예정 |
+
+---
+
+## 🏗️ 기존 자산
+
+### KSS-Fresh (참고 프로젝트)
+- 43개 모듈, 100+ 시뮬레이터
+- 온톨로지, Neo4j, RAG, LangChain 등
+
+### Flux-Ontology (참고 프로젝트)
+- 36 Phase 완료
+- Palantir Foundry 클론 수준 엔터프라이즈 플랫폼
+- Neo4j + PostgreSQL + Elasticsearch
+
+---
+
+## 🚀 시작하기
+
+```bash
+# Clone
+git clone https://github.com/jeromwolf/kss-ontology.git
+cd kss-ontology/web
+
+# Install
+npm install
+
+# Run
+npm run dev
+```
+
+---
+
+## 🎓 10개 챕터 (기존 완료)
 
 ---
 
