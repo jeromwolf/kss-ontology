@@ -490,3 +490,126 @@ export interface CompanyRelation {
 - 🔄 사용자 피드백 UI (Next)
 - 📋 일일 배치 작업
 
+---
+
+## 2025-12-03: FDE Academy 전략 수립 및 도메인 지식 자료조사
+
+### 🎯 목표
+FDE (Forward Deployed Engineer) 교육 플랫폼 + SMB Foundry 플랫폼 개발을 위한 전략 수립 및 도메인 지식 자료 수집
+
+### ✅ 완료된 작업
+
+#### 1. 산업별 케이스 스터디 (6개 산업)
+
+| 산업 | 핵심 온톨로지 | 주요 기업/플랫폼 |
+|------|--------------|------------------|
+| **헬스케어** | FHIR, SNOMED-CT | Palantir FDP, NHS |
+| **금융** | FIBO | 은행, 보험사 |
+| **제조업** | Digital Twin | Siemens, Industry 4.0 |
+| **공급망/물류** | Supply Chain Ontology | Palantir |
+| **바이오/제약** | Gene Ontology, PrimeKG | Insilico, Recursion |
+| **국방/방산** | BFO, C2, ATT&CK | Palantir Gotham, Anduril |
+
+#### 2. 시뮬레이터 검토
+
+**기존 자산 분석:**
+- **KSS-Fresh**: 43개 모듈, 100+ 시뮬레이터
+- **Flux-Ontology**: 36 Phase 완료 (Palantir Foundry 클론 수준)
+
+**필요 시뮬레이터 도출:**
+| 순위 | 시뮬레이터 | 개발 방식 |
+|------|-----------|-----------|
+| 1 | RDF Triple Editor | 신규 개발 |
+| 2 | SPARQL Query Lab | KSS 확장 |
+| 3 | OWL Class Builder | 신규 개발 |
+| 4 | Object Type Designer | Flux 재활용 |
+| 5 | Pipeline Builder | Flux 재활용 |
+
+#### 3. 도메인 지식 자료집 작성
+
+**문서 위치**: `docs/DOMAIN_KNOWLEDGE_RESOURCES.md`
+
+**핵심 내용:**
+- 오픈소스 온톨로지 저장소 (BioPortal, OBO Foundry, LOV)
+- 무료 SPARQL 엔드포인트 (Wikidata, DBpedia, FIBO)
+- 산업별 표준 온톨로지 다운로드 링크
+- 전문가 네트워크 구축 방안
+- 케이스 스터디 확보 전략
+
+#### 4. FIBO (금융 온톨로지) 심층 분석
+
+**문서 위치**: `docs/FIBO_DEEP_DIVE.md`
+
+**핵심 발견:**
+- 2,457개 클래스 (2025 Q3)
+- 9개 도메인 (FND, BE, FBC, SEC, DER, LOAN, IND, MD, CAE)
+- 주요 참여: Citi, Deutsche Bank, Goldman Sachs, Wells Fargo
+- 활용 사례: Basel III 준수, KYC/AML, Open Banking
+
+**FIBO 구조:**
+```
+owl:Thing
+├── AutonomousAgent (Person, LegalEntity)
+├── Contract (FinancialInstrumentContract, LoanContract)
+└── FinancialInstrument (Security, Derivative, Loan)
+```
+
+#### 5. FHIR (의료 데이터 표준) 심층 분석
+
+**문서 위치**: `docs/FHIR_DEEP_DIVE.md`
+
+**핵심 발견:**
+- 157개 리소스 (R5 기준)
+- JSON/XML + RDF 지원
+- RESTful API 기반
+- 전 세계 규제 지원 (21st Century Cures Act 등)
+
+**핵심 리소스:**
+- Patient (환자 정보)
+- Observation (검사/측정)
+- Condition (진단)
+- MedicationRequest (처방)
+
+**SMART on FHIR:**
+- OAuth 2.0 기반 보안
+- CDS Hooks (임상 결정 지원)
+- 112개+ 실제 앱 구현 사례
+
+### 📁 신규 문서
+
+| 파일 | 내용 |
+|------|------|
+| `docs/DOMAIN_KNOWLEDGE_RESOURCES.md` | 도메인 지식 수집 전략 및 리소스 |
+| `docs/FIBO_DEEP_DIVE.md` | 금융 온톨로지 심층 분석 |
+| `docs/FHIR_DEEP_DIVE.md` | 의료 데이터 표준 심층 분석 |
+
+### 🎯 다음 단계
+
+1. ~~산업별 케이스 스터디~~ ✅
+2. ~~시뮬레이터 검토~~ ✅
+3. ~~도메인 지식 자료조사~~ ✅
+4. ~~FIBO/FHIR 심층 분석~~ ✅
+5. **FDE 커리큘럼 초안 작성** (Next)
+6. 시뮬레이터 프로토타입 개발
+7. 유튜브 콘텐츠 기획
+
+### 💡 핵심 인사이트
+
+**1. FDE의 기원은 국방**
+- Palantir가 아프가니스탄에서 "Forward Deployed" 개념 탄생
+- 고객 현장 파견, 문제 해결 중심
+
+**2. 도메인 지식은 거의 무료로 공개됨**
+- FIBO: 금융 온톨로지 완전 공개 (GitHub)
+- FHIR: 의료 데이터 표준 무료
+- Gene Ontology: 바이오 온톨로지 OBO 형식
+
+**3. 한국 시장 기회**
+- FDE 개념 거의 알려지지 않음
+- 온톨로지/KG 교육 콘텐츠 부재
+- K-방산 수출 + 디지털 전환 수요 급증
+
+**4. 두 프로젝트 시너지**
+- Flux-Ontology: 백엔드 엔진 재활용
+- KSS-Fresh: 교육 UI/시뮬레이터 재활용
+

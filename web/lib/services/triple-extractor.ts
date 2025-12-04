@@ -18,6 +18,7 @@ function getOpenAI(): OpenAI {
  * 실제 온톨로지의 기본 단위 (Subject-Predicate-Object)
  */
 export interface RDFTriple {
+  id?: number // DB 레코드 ID (DB에서 조회된 경우)
   subject: string // URI 형식 (예: kss:Company_Samsung)
   predicate: string // URI 형식 (예: kss:supplies_to)
   object: string // URI 또는 리터럴

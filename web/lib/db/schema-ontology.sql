@@ -185,3 +185,19 @@ $$ LANGUAGE plpgsql;
 -- SELECT * FROM query_triples('kss:Company_Samsung', NULL, NULL, 0.8);
 -- SELECT * FROM query_triples(NULL, 'kss:supplies_to', 'kss:Company_Tesla', 0.7);
 -- ============================================================================
+
+-- ============================================================================
+-- Triple 피드백 이력 테이블 (사용자 액션 로그)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS triple_feedback (
+  id SERIAL PRIMARY KEY,
+  triple_id INTEGER REFERENCES knowledge_triples(id) ON DELETE CASCADE,
+  action VARCHAR(20) NOT NULL CHECK (action IN ('approve', 'reject', 'adjust')),
+  confidence FLOAT CHECK (confidence >= 0.0 AND confidence <= 1.0),
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_triple_feedback_triple_id ON triple_feedback(triple_id);
+CREATE INDEX IF NOT EXISTS idx_triple_feedback_created_at ON triple_feedback(created_at DESC);
+

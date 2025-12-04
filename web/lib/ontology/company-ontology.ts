@@ -23,6 +23,7 @@ export interface Industry {
 }
 
 export interface CompanyRelation {
+  id?: number // DB 레코드 ID (피드백 제출용)
   subject: string // 주체 기업 URI
   predicate: RelationType
   object: string // 대상 기업 URI

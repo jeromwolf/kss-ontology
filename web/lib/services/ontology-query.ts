@@ -64,7 +64,7 @@ export async function queryTriples(
   }
 
   const query = `
-    SELECT subject, predicate, object, confidence, source_url, extracted_date, validated_by
+    SELECT id, subject, predicate, object, confidence, source_url, extracted_date, validated_by
     FROM knowledge_triples
     WHERE ${conditions.join(' AND ')}
     ORDER BY confidence DESC, extracted_date DESC
@@ -73,6 +73,7 @@ export async function queryTriples(
   const result = await getPool().query(query, values)
 
   return result.rows.map(row => ({
+    id: row.id,
     subject: row.subject,
     predicate: row.predicate,
     object: row.object,
@@ -313,27 +314,58 @@ export async function saveTripleFeedback(
 }
 
 /**
- * 통계 조회
+ * 통계 조회 (확장)
  */
 export async function getOntologyStats(): Promise<{
   totalTriples: number
   highConfidenceTriples: number
+  userValidatedTriples: number
   companiesWithRelations: number
   avgConfidence: number
+  companiesCount: number
+  newsCount: number
+  feedbackCount: number
 }> {
-  const result = await getPool().query(`
+  // Triple 통계
+  const tripleResult = await getPool().query(`
     SELECT
       COUNT(*) as total_triples,
       COUNT(*) FILTER (WHERE confidence >= 0.8) as high_confidence,
+      COUNT(*) FILTER (WHERE validated_by = 'user') as user_validated,
       COUNT(DISTINCT subject) as companies,
       AVG(confidence) as avg_confidence
     FROM knowledge_triples
   `)
 
+  // 커버 기업 수
+  const companiesResult = await getPool().query(`
+    SELECT COUNT(*) as count
+    FROM covered_companies
+    WHERE is_active = true
+  `)
+
+  // 뉴스 기사 수
+  const newsResult = await getPool().query(`
+    SELECT COUNT(*) as count
+    FROM news_articles
+  `)
+
+  // 피드백 이력 수
+  const feedbackResult = await getPool().query(`
+    SELECT COUNT(*) as count
+    FROM triple_feedback
+  `)
+
+  const triple = tripleResult.rows[0]
+
   return {
-    totalTriples: parseInt(result.rows[0].total_triples),
-    highConfidenceTriples: parseInt(result.rows[0].high_confidence),
-    companiesWithRelations: parseInt(result.rows[0].companies),
-    avgConfidence: parseFloat(result.rows[0].avg_confidence) || 0
+    totalTriples: parseInt(triple.total_triples),
+    highConfidenceTriples: parseInt(triple.high_confidence),
+    userValidatedTriples: parseInt(triple.user_validated || '0'),
+    companiesWithRelations: parseInt(triple.companies),
+    avgConfidence: parseFloat(triple.avg_confidence) || 0,
+    companiesCount: parseInt(companiesResult.rows[0]?.count || '0'),
+    newsCount: parseInt(newsResult.rows[0]?.count || '0'),
+    feedbackCount: parseInt(feedbackResult.rows[0]?.count || '0'),
   }
 }

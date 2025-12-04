@@ -103,7 +103,7 @@ export default function KnowledgeGraph({ triples = [], height = '600px' }: Knowl
         },
         borderWidth: 2,
         borderWidthSelected: 3,
-        margin: 10,
+        margin: { top: 10, right: 10, bottom: 10, left: 10 },
       }
     })
 

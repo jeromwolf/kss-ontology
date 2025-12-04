@@ -20,11 +20,14 @@ interface NewsArticle {
 }
 
 interface CompanyRelation {
+  id?: number // DB 레코드 ID (피드백 제출용)
   subject: string
   predicate: string
   object: string
   strength: number
   description: string
+  confidence?: number
+  validatedBy?: 'baseline' | 'gpt' | 'user'
 }
 
 interface OntologyInsight {
@@ -181,6 +184,43 @@ export default function DashboardPage() {
     }
   }
 
+  const handleTripleFeedback = async (
+    tripleId: number,
+    action: 'approve' | 'reject' | 'adjust',
+    confidence?: number
+  ) => {
+    try {
+      const res = await fetch('/api/ontology/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tripleId,
+          feedback: {
+            action,
+            confidence,
+            notes: `User ${action} from dashboard`
+          }
+        })
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to submit feedback')
+      }
+
+      // Refresh insight to show updated confidence
+      if (insight) {
+        await handleGenerateInsight()
+      }
+
+      alert(`피드백이 성공적으로 반영되었습니다!`)
+    } catch (err: any) {
+      console.error('Feedback error:', err)
+      alert(`피드백 제출 실패: ${err.message}`)
+    }
+  }
+
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' })
     router.push('/login')
@@ -248,6 +288,13 @@ export default function DashboardPage() {
               <p className="text-sm text-gray-600 dark:text-gray-400">투자자를 위한 아침 브리핑</p>
             </div>
             <div className="flex items-center gap-3">
+              <button
+                onClick={() => router.push('/monitoring')}
+                className="px-4 py-2 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center gap-2"
+              >
+                <span>📊</span>
+                모니터링
+              </button>
               <button
                 onClick={() => router.push('/dashboard/graph')}
                 className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors flex items-center gap-2"
@@ -559,6 +606,7 @@ export default function DashboardPage() {
                               <div className="space-y-2">
                                 {company.ontologyInsight.relations.map((rel, i) => {
                                   const validationBadge = getValidationBadge(rel.validatedBy)
+                                  const showFeedbackButtons = rel.id && rel.validatedBy !== 'user' // DB에서 온 관계이고 아직 사용자 검증 안됨
                                   return (
                                     <div key={i} className="text-xs bg-white dark:bg-gray-800 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700">
                                       <div className="flex items-center justify-between mb-1">
@@ -578,9 +626,51 @@ export default function DashboardPage() {
                                           )}
                                         </div>
                                       </div>
-                                      <div className="text-gray-600 dark:text-gray-400">
+                                      <div className="text-gray-600 dark:text-gray-400 mb-2">
                                         {rel.description}
                                       </div>
+                                      {showFeedbackButtons && (
+                                        <div className="flex items-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                                          <span className="text-xs text-gray-500 dark:text-gray-400">이 관계가 정확한가요?</span>
+                                          <div className="flex gap-1 ml-auto">
+                                            <button
+                                              onClick={() => handleTripleFeedback(rel.id!, 'approve')}
+                                              className="px-2 py-1 text-xs bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50 text-green-700 dark:text-green-400 rounded transition-colors"
+                                              title="이 관계를 승인합니다 (신뢰도 +15%)"
+                                            >
+                                              ✓ 승인
+                                            </button>
+                                            <button
+                                              onClick={() => {
+                                                const newConfidence = prompt('새로운 신뢰도를 입력하세요 (0.0 ~ 1.0):', rel.confidence?.toString() || '0.7')
+                                                if (newConfidence !== null) {
+                                                  const conf = parseFloat(newConfidence)
+                                                  if (conf >= 0 && conf <= 1) {
+                                                    handleTripleFeedback(rel.id!, 'adjust', conf)
+                                                  } else {
+                                                    alert('0.0 ~ 1.0 사이의 값을 입력해주세요')
+                                                  }
+                                                }
+                                              }}
+                                              className="px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-400 rounded transition-colors"
+                                              title="신뢰도를 직접 조정합니다"
+                                            >
+                                              ⚙ 조정
+                                            </button>
+                                            <button
+                                              onClick={() => {
+                                                if (confirm('이 관계를 삭제하시겠습니까?')) {
+                                                  handleTripleFeedback(rel.id!, 'reject')
+                                                }
+                                              }}
+                                              className="px-2 py-1 text-xs bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 rounded transition-colors"
+                                              title="이 관계를 거부하고 삭제합니다"
+                                            >
+                                              ✗ 거부
+                                            </button>
+                                          </div>
+                                        </div>
+                                      )}
                                     </div>
                                   )
                                 })}

@@ -83,8 +83,8 @@ class NaverNewsClient {
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'X-Naver-Client-Id': this.clientId,
-          'X-Naver-Client-Secret': this.clientSecret,
+          'X-Naver-Client-Id': this.clientId || '',
+          'X-Naver-Client-Secret': this.clientSecret || '',
         },
       })
 

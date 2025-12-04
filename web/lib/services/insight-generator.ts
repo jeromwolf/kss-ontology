@@ -227,6 +227,7 @@ async function generateOntologyInsight(companyName: string): Promise<OntologyIns
 
     // RDF Triple을 CompanyRelation 형식으로 변환
     dbRelations = companyRelations.outgoing.map(triple => ({
+      id: triple.id, // DB ID 포함 (피드백 제출용)
       subject: triple.subject,
       predicate: triple.predicate.replace('kss:', '') as any,
       object: triple.object,
