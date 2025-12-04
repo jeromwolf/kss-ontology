@@ -6,6 +6,9 @@ import {
   decayOutdatedTriples,
 } from '@/lib/services/data-quality'
 
+// Force dynamic rendering to avoid build-time DB connection
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/quality
  * 데이터 품질 검사 보고서 조회

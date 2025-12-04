@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { scheduler } from '@/lib/services/scheduler'
 
+// Force dynamic rendering to avoid build-time errors
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/scheduler
  * 스케줄러 상태 조회

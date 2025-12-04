@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { getOntologyStats } from '@/lib/services/ontology-query'
 
+// Force dynamic rendering to avoid build-time DB connection
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/ontology/stats
  * 온톨로지 통계 조회

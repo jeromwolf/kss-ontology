@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Pool } from 'pg'
 import { withCache, createCacheKey, CacheTTL } from '@/lib/services/cache'
 
+// Force dynamic rendering to avoid build-time DB connection
+export const dynamic = 'force-dynamic'
+
 // Lazy initialization to avoid build-time errors
 let pool: Pool | null = null
 

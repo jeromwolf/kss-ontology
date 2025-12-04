@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { Pool } from 'pg'
 
+// Force dynamic rendering to avoid build-time DB connection
+export const dynamic = 'force-dynamic'
+
 // Lazy initialization to avoid build-time errors
 let openai: OpenAI | null = null
 let pool: Pool | null = null

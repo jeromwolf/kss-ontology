@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { queryTriples } from '@/lib/services/ontology-query'
 
+// Force dynamic rendering to avoid build-time DB connection
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/ontology/graph
  *

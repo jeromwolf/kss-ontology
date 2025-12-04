@@ -6,6 +6,9 @@ import {
 } from '@/lib/services/ai-insights'
 import { withCache, createCacheKey, CacheTTL } from '@/lib/services/cache'
 
+// Force dynamic rendering to avoid build-time DB connection
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/insights
  * AI 기반 공급망 네트워크 인사이트 생성
