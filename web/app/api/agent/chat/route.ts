@@ -2,13 +2,27 @@ import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { Pool } from 'pg'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+// Lazy initialization to avoid build-time errors
+let openai: OpenAI | null = null
+let pool: Pool | null = null
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-})
+function getOpenAI() {
+  if (!openai) {
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY || '',
+    })
+  }
+  return openai
+}
+
+function getPool() {
+  if (!pool) {
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL || '',
+    })
+  }
+  return pool
+}
 
 /**
  * POST /api/agent/chat
@@ -58,7 +72,7 @@ ${Object.keys(toolResults).length > 0 ? `\n현재 데이터베이스 정보:\n${
     }
 
     // OpenAI 호출
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4',
       messages: [
         systemMessage,
@@ -101,7 +115,7 @@ ${Object.keys(toolResults).length > 0 ? `\n현재 데이터베이스 정보:\n${
  * 온톨로지 쿼리 도구 실행
  */
 async function executeOntologyQuery() {
-  const result = await pool.query(`
+  const result = await getPool().query(`
     SELECT
       COUNT(*) as total_triples,
       COUNT(DISTINCT subject) as unique_entities,
@@ -110,7 +124,7 @@ async function executeOntologyQuery() {
     WHERE confidence >= 0.7
   `)
 
-  const topRelations = await pool.query(`
+  const topRelations = await getPool().query(`
     SELECT
       predicate,
       COUNT(*) as count
@@ -136,7 +150,7 @@ async function executeOntologyQuery() {
  * 통계 분석 도구 실행
  */
 async function executeAnalytics() {
-  const stats = await pool.query(`
+  const stats = await getPool().query(`
     SELECT
       COUNT(*) FILTER (WHERE confidence >= 0.9) as very_high,
       COUNT(*) FILTER (WHERE confidence >= 0.8 AND confidence < 0.9) as high,
@@ -145,7 +159,7 @@ async function executeAnalytics() {
     FROM knowledge_triples
   `)
 
-  const validationStats = await pool.query(`
+  const validationStats = await getPool().query(`
     SELECT
       validated_by,
       COUNT(*) as count
@@ -172,7 +186,7 @@ async function executeAnalytics() {
  */
 async function executeInsights() {
   // 최근 고신뢰도 Triple 조회
-  const recentTriples = await pool.query(`
+  const recentTriples = await getPool().query(`
     SELECT subject, predicate, object, confidence
     FROM knowledge_triples
     WHERE confidence >= 0.8
