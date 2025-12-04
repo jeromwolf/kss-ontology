@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Pool } from 'pg'
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-})
+// Lazy initialization to avoid build-time errors
+let pool: Pool | null = null
+
+function getPool() {
+  if (!pool) {
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL || '',
+    })
+  }
+  return pool
+}
 
 /**
  * POST /api/ontology/feedback
@@ -43,7 +51,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const client = await pool.connect()
+    const client = await getPool().connect()
 
     try {
       await client.query('BEGIN')
@@ -170,7 +178,7 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    const result = await pool.query(
+    const result = await getPool().query(
       `SELECT * FROM triple_feedback
        WHERE triple_id = $1
        ORDER BY created_at DESC`,

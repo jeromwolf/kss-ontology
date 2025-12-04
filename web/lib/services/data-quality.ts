@@ -11,9 +11,17 @@
 import { Pool } from 'pg'
 import { notifyDataQualityIssue } from './notification'
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-})
+// Lazy initialization to avoid build-time errors
+let pool: Pool | null = null
+
+function getPool() {
+  if (!pool) {
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL || '',
+    })
+  }
+  return pool
+}
 
 export interface QualityIssue {
   type: 'duplicate' | 'contradiction' | 'low_confidence' | 'outdated'
@@ -91,7 +99,7 @@ export async function runQualityCheck(): Promise<QualityReport> {
  * 같은 subject, predicate, object를 가진 Triple
  */
 async function findDuplicateTriples(): Promise<QualityIssue[]> {
-  const result = await pool.query(`
+  const result = await getPool().query(`
     SELECT subject, predicate, object, ARRAY_AGG(id) as ids, COUNT(*) as count
     FROM knowledge_triples
     GROUP BY subject, predicate, object
@@ -117,7 +125,7 @@ async function findDuplicateTriples(): Promise<QualityIssue[]> {
  * 예: A supplies_to B와 B supplies_to A가 동시에 존재
  */
 async function findContradictions(): Promise<QualityIssue[]> {
-  const result = await pool.query(`
+  const result = await getPool().query(`
     WITH reverse_relations AS (
       SELECT
         t1.id as id1,
@@ -163,7 +171,7 @@ async function findContradictions(): Promise<QualityIssue[]> {
  * confidence < 0.5인 Triple
  */
 async function findLowConfidenceTriples(): Promise<QualityIssue[]> {
-  const result = await pool.query(`
+  const result = await getPool().query(`
     SELECT id, subject, predicate, object, confidence
     FROM knowledge_triples
     WHERE confidence < 0.5
@@ -190,7 +198,7 @@ async function findLowConfidenceTriples(): Promise<QualityIssue[]> {
  * 90일 이상 된 GPT 검증 Triple
  */
 async function findOutdatedTriples(): Promise<QualityIssue[]> {
-  const result = await pool.query(`
+  const result = await getPool().query(`
     SELECT id, subject, predicate, object, created_at, confidence
     FROM knowledge_triples
     WHERE validated_by = 'gpt'
@@ -267,7 +275,7 @@ export async function mergeDuplicateTriples(
     throw new Error('최소 2개 이상의 Triple ID가 필요합니다.')
   }
 
-  const client = await pool.connect()
+  const client = await getPool().connect()
 
   try {
     await client.query('BEGIN')
@@ -320,7 +328,7 @@ export async function mergeDuplicateTriples(
  * 저신뢰도 Triple 자동 삭제
  */
 export async function deleteLowConfidenceTriples(threshold: number = 0.3): Promise<number> {
-  const result = await pool.query(
+  const result = await getPool().query(
     `
     DELETE FROM knowledge_triples
     WHERE confidence < $1
@@ -342,7 +350,7 @@ export async function decayOutdatedTriples(
   daysThreshold: number = 90,
   decayRate: number = 0.1
 ): Promise<number> {
-  const result = await pool.query(
+  const result = await getPool().query(
     `
     UPDATE knowledge_triples
     SET confidence = GREATEST(0.1, confidence * (1 - $2))

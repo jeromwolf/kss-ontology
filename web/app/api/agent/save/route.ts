@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Pool } from 'pg'
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-})
+// Lazy initialization to avoid build-time errors
+let pool: Pool | null = null
+
+function getPool() {
+  if (!pool) {
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL || '',
+    })
+  }
+  return pool
+}
 
 /**
  * POST /api/agent/save
@@ -21,7 +29,7 @@ export async function POST(req: NextRequest) {
     }
 
     // agents 테이블이 없으면 생성
-    await pool.query(`
+    await getPool().query(`
       CREATE TABLE IF NOT EXISTS agents (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL UNIQUE,
@@ -36,7 +44,7 @@ export async function POST(req: NextRequest) {
     `)
 
     // Agent 저장 (이름이 같으면 업데이트)
-    const result = await pool.query(
+    const result = await getPool().query(
       `
       INSERT INTO agents (name, role, instructions, tools, temperature, max_tokens)
       VALUES ($1, $2, $3, $4, $5, $6)
@@ -88,7 +96,7 @@ export async function GET(req: NextRequest) {
 
     if (name) {
       // 특정 Agent 조회
-      const result = await pool.query(
+      const result = await getPool().query(
         `
         SELECT id, name, role, instructions, tools, temperature, max_tokens as "maxTokens", created_at, updated_at
         FROM agents
@@ -110,7 +118,7 @@ export async function GET(req: NextRequest) {
       })
     } else {
       // 전체 Agent 목록 조회
-      const result = await pool.query(`
+      const result = await getPool().query(`
         SELECT id, name, role, tools, created_at, updated_at
         FROM agents
         ORDER BY updated_at DESC
@@ -149,7 +157,7 @@ export async function DELETE(req: NextRequest) {
       )
     }
 
-    const result = await pool.query(
+    const result = await getPool().query(
       `
       DELETE FROM agents
       WHERE name = $1

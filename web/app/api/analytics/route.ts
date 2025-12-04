@@ -2,9 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Pool } from 'pg'
 import { withCache, createCacheKey, CacheTTL } from '@/lib/services/cache'
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-})
+// Lazy initialization to avoid build-time errors
+let pool: Pool | null = null
+
+function getPool() {
+  if (!pool) {
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL || '',
+    })
+  }
+  return pool
+}
 
 /**
  * GET /api/analytics
@@ -51,7 +59,7 @@ async function fetchAnalyticsData(period: string) {
     const datePeriod = getPeriodDays(period)
 
     // 1. Triple 통계
-    const tripleStats = await pool.query(`
+    const tripleStats = await getPool().query(`
       SELECT
         COUNT(*) as total,
         COUNT(*) FILTER (WHERE confidence >= 0.9) as very_high_confidence,
@@ -68,7 +76,7 @@ async function fetchAnalyticsData(period: string) {
     `)
 
     // 2. 일별 Triple 추출 추이
-    const triplesTrend = await pool.query(
+    const triplesTrend = await getPool().query(
       `
       SELECT
         DATE(created_at) as date,
@@ -83,7 +91,7 @@ async function fetchAnalyticsData(period: string) {
     )
 
     // 3. 관계 타입별 분포
-    const relationTypes = await pool.query(`
+    const relationTypes = await getPool().query(`
       SELECT
         predicate,
         COUNT(*) as count,
@@ -95,7 +103,7 @@ async function fetchAnalyticsData(period: string) {
     `)
 
     // 4. 기업별 Triple 수
-    const companiesStats = await pool.query(`
+    const companiesStats = await getPool().query(`
       SELECT
         SUBSTRING(subject FROM 'Company_(.*)') as company,
         COUNT(*) as triple_count,
@@ -108,7 +116,7 @@ async function fetchAnalyticsData(period: string) {
     `)
 
     // 5. 피드백 통계
-    const feedbackStats = await pool.query(`
+    const feedbackStats = await getPool().query(`
       SELECT
         action,
         COUNT(*) as count,
@@ -118,7 +126,7 @@ async function fetchAnalyticsData(period: string) {
     `)
 
     // 6. 뉴스 수집 통계
-    const newsStats = await pool.query(`
+    const newsStats = await getPool().query(`
       SELECT
         COUNT(*) as total,
         COUNT(*) FILTER (WHERE processed = true) as processed,
@@ -128,7 +136,7 @@ async function fetchAnalyticsData(period: string) {
     `)
 
     // 7. 최근 활동 (Triple 추가, 피드백 등)
-    const recentActivity = await pool.query(`
+    const recentActivity = await getPool().query(`
       SELECT
         'triple' as type,
         id,

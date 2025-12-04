@@ -2,9 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Pool } from 'pg'
 import { withCache, createCacheKey, CacheTTL } from '@/lib/services/cache'
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-})
+// Lazy initialization to avoid build-time errors
+let pool: Pool | null = null
+
+function getPool() {
+  if (!pool) {
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL || '',
+    })
+  }
+  return pool
+}
 
 /**
  * GET /api/graph
@@ -50,7 +58,7 @@ export async function GET(req: NextRequest) {
  */
 async function fetchGraphData(limit: number, minConfidence: number) {
   // Triple 데이터 조회
-  const triples = await pool.query(
+  const triples = await getPool().query(
     `
     SELECT
       id,

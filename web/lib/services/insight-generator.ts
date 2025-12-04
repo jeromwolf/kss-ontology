@@ -10,9 +10,17 @@ import { extractTriplesFromNews, batchExtractTriples } from './triple-extractor'
 import { getCompanyRelations, saveTriples, queryTriples } from './ontology-query'
 import { analyzeCompanyImpact, type ImpactAnalysis } from './impact-reasoner'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+// Lazy initialization to avoid build-time errors
+let openai: OpenAI | null = null
+
+function getOpenAI() {
+  if (!openai) {
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY || '',
+    })
+  }
+  return openai
+}
 
 interface NewsArticle {
   title: string
@@ -151,7 +159,7 @@ ${newsText}
 }`
 
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         {
@@ -338,7 +346,7 @@ ${summaries.join('\n')}
 이를 바탕으로 투자자를 위한 전체 시장 오버뷰를 2-3문장으로 작성해주세요. 주요 트렌드와 주의할 점을 포함하세요.`
 
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         {

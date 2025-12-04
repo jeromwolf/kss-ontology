@@ -6,13 +6,27 @@
 import OpenAI from 'openai'
 import { Pool } from 'pg'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+// Lazy initialization to avoid build-time errors
+let openai: OpenAI | null = null
+let pool: Pool | null = null
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-})
+function getOpenAI() {
+  if (!openai) {
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY || '',
+    })
+  }
+  return openai
+}
+
+function getPool() {
+  if (!pool) {
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL || '',
+    })
+  }
+  return pool
+}
 
 export interface Insight {
   type: 'network' | 'risk' | 'opportunity' | 'recommendation'
@@ -49,7 +63,7 @@ export async function analyzeSupplyChainNetwork(
     `
 
     const params = companyName ? [`%${companyName}%`] : []
-    const result = await pool.query(query, params)
+    const result = await getPool().query(query, params)
 
     if (result.rows.length === 0) {
       return [
@@ -73,7 +87,7 @@ export async function analyzeSupplyChainNetwork(
       .join('\n')
 
     // OpenAI로 분석 요청
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4',
       messages: [
         {
@@ -126,7 +140,7 @@ export async function analyzeSupplyChainNetwork(
   } catch (error: any) {
     console.error('AI 인사이트 생성 실패:', error)
     // OpenAI 오류 시 기본 분석 제공
-    const result = await pool.query(
+    const result = await getPool().query(
       `
       SELECT subject, predicate, object, confidence
       FROM knowledge_triples
@@ -244,7 +258,7 @@ export async function analyzeNetworkHealth(): Promise<{
   issues: string[]
   strengths: string[]
 }> {
-  const stats = await pool.query(`
+  const stats = await getPool().query(`
     SELECT
       COUNT(*) as total,
       AVG(confidence) as avg_confidence,
