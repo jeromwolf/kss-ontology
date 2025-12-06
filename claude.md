@@ -613,3 +613,126 @@ owl:Thing
 - Flux-Ontology: 백엔드 엔진 재활용
 - KSS-Fresh: 교육 UI/시뮬레이터 재활용
 
+---
+
+## 2025-12-06: FDE Academy 커리큘럼 v2.2 완성
+
+### 🎯 목표
+FDE Academy 커리큘럼 웹사이트 완성 및 클로드 웹 조언 반영
+
+### ✅ 완료된 작업
+
+#### 1. 커리큘럼 웹사이트 구축 (fde-curriculum-simple)
+
+**배포 URL**: https://fde-curriculum-simple.vercel.app (임시, 업무 협업용)
+
+**기술 스택**:
+- Next.js 14 (App Router)
+- Tailwind CSS + @tailwindcss/typography
+- react-markdown + remark-gfm
+- Vercel 배포
+
+**주요 기능**:
+- 6 Phase 커리큘럼 개요 (접기/펼치기)
+- Phase 상세 페이지 (마크다운 렌더링)
+- 주간 학습 시간, 평가 기준, 선수 과목
+- 포트폴리오 로드맵, 자격증 로드맵
+- Palantir Foundry 스페셜 과정
+
+#### 2. Phase 연결 가이드 추가
+
+각 Phase 상세 문서에 "왜 배우는가" 섹션 추가:
+
+| Phase | 연결 메시지 |
+|-------|------------|
+| Phase 2 | 기술 역량(Phase 1) + 비즈니스 역량 = FDE 차별화 가치 |
+| Phase 3 | Phase 2 ML + Phase 3 KG = 구조화된 지식 기반 AI |
+| Phase 4 | Phase 1-3 프로젝트 + Phase 4 인프라 = 프로덕션 레벨 시스템 |
+| Phase 5 | Phase 1-4 데이터 플랫폼 + GenAI = AI-Powered 플랫폼 |
+| Phase 6 | Phase 1-5 기술 역량 + 도메인 전문성 = FDE Ready |
+
+#### 3. dbt 기초 추가 (Phase 1 Week 7.5)
+
+Week 7 (Airflow) 이후, Week 8 (E2E 프로젝트) 전에 삽입:
+- dbt의 역할과 ELT 패러다임
+- dbt 프로젝트 구조 (staging → intermediate → marts)
+- dbt 모델 작성 (view, incremental)
+- dbt 테스트 & 문서화
+- Airflow + dbt 통합 예제
+- 실습 과제 및 추천 자료
+
+#### 4. 비용 추정 가이드 추가
+
+메인 페이지에 "예상 비용 가이드" 섹션:
+
+| 항목 | 월간 예상 | 비고 |
+|------|----------|------|
+| AWS | $50-150 | Phase 4 집중, Free Tier 활용 |
+| OpenAI API | $20-50 | Phase 5, GPT-4o-mini |
+| Anthropic API | $20-40 | Phase 5, Claude Haiku |
+| Neo4j Aura | $0 | Free Tier (50K 노드) |
+| Pinecone | $0-20 | Free Tier 존재 |
+| Databricks | $0 | Community Edition |
+
+**12개월 총 예상**: $1,100 ~ $3,700 (약 150~500만원)
+
+**비용 절약 팁 6가지**:
+1. AWS Free Tier 한도 모니터링
+2. 학습 후 리소스 즉시 삭제
+3. Spot Instances 활용 (최대 90% 할인)
+4. LLM API 캐싱 적용
+5. 로컬 개발 최대한 활용
+6. GitHub Student Pack 활용
+
+#### 5. 시뮬레이터 정리 (docs/SIMULATORS.md)
+
+**재활용 가능한 기존 자산**:
+- KSS-Fresh: 32 모듈, 170+ 시뮬레이터
+- Flux-Ontology: 38 Phase (Palantir Foundry 클론)
+- KSS-Ontology: Triple Store, 쿼리 엔진
+
+**총 195+ 시뮬레이터 재활용 가능**
+
+**개선 필요 사항**:
+- 겉핥기 한계점 인식
+- 전문적 수정 필요 시 계획
+
+### 📁 변경된 파일
+
+**fde-curriculum-simple/**:
+- `app/page.tsx` - 비용 추정 가이드 추가
+- `app/phase/[id]/page.tsx` - 상세 페이지 마크다운 렌더링
+- `docs/PHASE1_DETAILED.md` - dbt 기초 (Week 7.5) 추가
+- `docs/PHASE2_DETAILED.md` - Phase 연결 가이드 추가
+- `docs/PHASE3_DETAILED.md` - Phase 연결 가이드 추가
+- `docs/PHASE4_DETAILED.md` - Phase 연결 가이드 추가
+- `docs/PHASE5_DETAILED.md` - Phase 연결 가이드 추가
+- `docs/PHASE6_DETAILED.md` - Phase 연결 가이드 추가
+- `docs/SIMULATORS.md` - 시뮬레이터 목록 정리
+- `README.md` - 프로젝트 문서 (신규)
+- `tailwind.config.js` - @tailwindcss/typography 추가
+
+### 🎯 다음 단계 (내일부터)
+
+1. **환경 설정** - 리얼 환경 구축
+2. **태스크 정의** - 상세 태스크 분할
+3. **시뮬레이터 프로토타입** - 실제 구현
+4. **유튜브 콘텐츠 기획** - 홍보/교육 영상
+
+### 💡 교훈
+
+**1. 임시 사이트의 가치**
+- 업무 협업용으로 빠르게 배포
+- 피드백 수집 후 개선
+- 리얼 환경은 별도로 준비
+
+**2. 클로드 웹 조언 활용**
+- 상세 커리큘럼 검토 후 8개 보충 항목 제안받음
+- 우선순위 정하여 3개 즉시 적용
+- 나머지는 향후 계획
+
+**3. 문서화 = 투자**
+- CLAUDE.md에 모든 작업 기록
+- README.md로 프로젝트 개요 정리
+- 향후 참조 및 협업에 필수
+
