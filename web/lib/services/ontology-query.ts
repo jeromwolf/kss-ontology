@@ -8,8 +8,23 @@ let pool: Pool | null = null
 
 function getPool(): Pool {
   if (!pool) {
+    // DATABASE_URL에서 schema 파라미터 추출 및 제거 (pg는 schema 파라미터 지원 안함)
+    let connectionString = process.env.DATABASE_URL || ''
+
+    // URL 파싱
+    const url = new URL(connectionString)
+    const schema = url.searchParams.get('schema') || 'public'
+    url.searchParams.delete('schema')
+    connectionString = url.toString()
+
     pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
+      connectionString,
+      ssl: { rejectUnauthorized: false } // Azure PostgreSQL requires SSL
+    })
+
+    // 연결 시 search_path 설정
+    pool.on('connect', (client) => {
+      client.query(`SET search_path TO ${schema}, public`)
     })
   }
   return pool

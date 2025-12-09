@@ -1,89 +1,149 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Lightbulb, ArrowLeft, Rocket } from "lucide-react"
+'use client'
 
-export default function ReasoningEnginePage() {
+import dynamic from 'next/dynamic'
+import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
+
+const InferenceEngine = dynamic(
+  () => import('@/components/rdf-editor/components/InferenceEngine').then(mod => ({ default: mod.InferenceEngine })),
+  { ssr: false }
+)
+
+export default function InferenceEngineSimulator() {
+  // Sample triples for demonstration
+  const sampleTriples = [
+    { subject: ':John', predicate: ':knows', object: ':Mary' },
+    { subject: ':Mary', predicate: ':knows', object: ':Bob' },
+    { subject: ':Alice', predicate: ':marriedTo', object: ':John' },
+    { subject: ':Bob', predicate: ':type', object: ':Person' },
+    { subject: ':Mary', predicate: ':type', object: ':Person' },
+    { subject: ':John', predicate: ':type', object: ':Person' },
+    { subject: ':Korea', predicate: ':locatedIn', object: ':Asia' },
+    { subject: ':Seoul', predicate: ':locatedIn', object: ':Korea' },
+    { subject: ':Samsung', predicate: ':locatedIn', object: ':Seoul' },
+    { subject: ':Prof_Kim', predicate: ':teaches', object: ':AI_Course' },
+    { subject: ':Student_Lee', predicate: ':enrolledIn', object: ':AI_Course' },
+  ]
+
   return (
-    <div className="h-full flex items-center justify-center p-8">
-      <Card className="max-w-2xl w-full">
-        <CardHeader className="text-center">
-          <div className="mx-auto p-4 bg-primary/10 rounded-full w-fit mb-4">
-            <Lightbulb className="h-12 w-12 text-primary" />
-          </div>
-          <CardTitle className="text-3xl">Inference Engine</CardTitle>
-          <CardDescription>
-            OWL 추론을 시뮬레이션하는 추론 엔진
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="p-6 bg-muted rounded-lg text-center">
-            <Rocket className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
-            <h3 className="font-semibold mb-2">곧 만나보실 수 있습니다</h3>
-            <p className="text-sm text-muted-foreground">
-              v4.0 업데이트 (2025년 2월)에 Inference Engine이 추가됩니다.
-            </p>
-          </div>
+    <div className="h-full bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 overflow-auto">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-12">
+        <div className="mb-8">
+          <Link
+            href="/simulators"
+            className="inline-flex items-center text-primary hover:text-primary/80 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            시뮬레이터 목록으로
+          </Link>
+        </div>
 
-          <div>
-            <h4 className="font-semibold mb-3">예정된 기능</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-start gap-2">
-                <span className="text-primary">✓</span>
-                <span>RDFS 11 규칙 시뮬레이션</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary">✓</span>
-                <span>OWL 2 추론 지원 (RL, EL, QL 프로파일)</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary">✓</span>
-                <span>추론 과정 단계별 시각화</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary">✓</span>
-                <span>Pellet/HermiT 엔진 시뮬레이션</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary">✓</span>
-                <span>추론 결과 비교 (추론 전/후)</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary">✓</span>
-                <span>다크모드 지원</span>
-              </li>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+            Inference Engine (추론 엔진)
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300 mb-8">
+            온톨로지 추론 과정을 실시간으로 시각화하고 체험해보세요. 다양한 추론 규칙이 어떻게 새로운 지식을 생성하는지 관찰할 수 있습니다.
+          </p>
+
+          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-xl p-6 mb-8">
+            <h2 className="text-lg font-semibold mb-4 text-purple-900 dark:text-purple-300">
+              사용 방법
+            </h2>
+            <ul className="space-y-2 text-gray-700 dark:text-gray-300">
+              <li>• <strong>샘플 데이터:</strong> 미리 준비된 11개 트리플로 추론 체험</li>
+              <li>• <strong>실시간 추론:</strong> 트리플을 바탕으로 자동 추론 실행</li>
+              <li>• <strong>추론 규칙:</strong> 대칭, 전이, 타입 추론, 역관계 규칙 적용</li>
+              <li>• <strong>신뢰도 점수:</strong> 각 추론의 정확도를 확인</li>
             </ul>
           </div>
 
-          <div>
-            <h4 className="font-semibold mb-3">미리 학습하기</h4>
-            <p className="text-sm text-muted-foreground mb-3">
-              Inference Engine을 최대한 활용하기 위해 Chapter 5를 먼저 학습해보세요:
-            </p>
-            <Button asChild className="w-full">
-              <Link href="/chapters/05-reasoning">
-                Chapter 5: 추론 엔진 - 지식의 확장 →
-              </Link>
-            </Button>
-          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+            <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-6">
+              <h3 className="font-semibold text-green-900 dark:text-green-300 mb-2">
+                대칭 관계 (Symmetric)
+              </h3>
+              <p className="text-gray-700 dark:text-gray-300 text-sm">
+                A가 B를 안다면, B도 A를 안다
+              </p>
+              <code className="text-xs mt-2 block text-green-700">knows, marriedTo</code>
+            </div>
 
-          <div className="pt-4 border-t">
-            <div className="flex gap-3">
-              <Button asChild variant="outline" className="flex-1">
-                <Link href="/simulators">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  시뮬레이터 목록
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="flex-1">
-                <Link href="/roadmap">
-                  로드맵 확인
-                </Link>
-              </Button>
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6">
+              <h3 className="font-semibold text-blue-900 dark:text-blue-300 mb-2">
+                전이 관계 (Transitive)
+              </h3>
+              <p className="text-gray-700 dark:text-gray-300 text-sm">
+                A→B, B→C이면 A→C
+              </p>
+              <code className="text-xs mt-2 block text-blue-700">locatedIn, partOf</code>
+            </div>
+
+            <div className="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-6">
+              <h3 className="font-semibold text-orange-900 dark:text-orange-300 mb-2">
+                타입 추론 (Domain/Range)
+              </h3>
+              <p className="text-gray-700 dark:text-gray-300 text-sm">
+                속성에서 타입 자동 분류
+              </p>
+              <code className="text-xs mt-2 block text-orange-700">teaches, enrolledIn</code>
+            </div>
+
+            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-6">
+              <h3 className="font-semibold text-purple-900 dark:text-purple-300 mb-2">
+                역관계 (Inverse)
+              </h3>
+              <p className="text-gray-700 dark:text-gray-300 text-sm">
+                관계의 역방향 추론
+              </p>
+              <code className="text-xs mt-2 block text-purple-700">hasParent↔hasChild</code>
             </div>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* 입력 트리플 표시 */}
+          <div className="mb-8">
+            <h3 className="font-semibold mb-4 text-gray-900 dark:text-white">입력 트리플 (11개)</h3>
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 max-h-48 overflow-y-auto">
+              <div className="grid gap-2 text-sm font-mono">
+                {sampleTriples.map((t, i) => (
+                  <div key={i} className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                    <span className="text-blue-600">{t.subject}</span>
+                    <span className="text-green-600">{t.predicate}</span>
+                    <span className="text-blue-600">{t.object}</span>
+                    <span className="text-gray-400">.</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="border-2 border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden p-6">
+            <InferenceEngine triples={sampleTriples} />
+          </div>
+
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-6">
+              <h3 className="font-semibold text-yellow-900 dark:text-yellow-300 mb-2">
+                추론 엔진의 원리
+              </h3>
+              <p className="text-gray-700 dark:text-gray-300 text-sm">
+                온톨로지 추론 엔진은 기존 사실(트리플)에서 새로운 지식을 자동으로
+                도출하는 AI 시스템입니다. RDFS/OWL 논리 규칙을 바탕으로 숨겨진 관계를 발견합니다.
+              </p>
+            </div>
+
+            <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-xl p-6">
+              <h3 className="font-semibold text-indigo-900 dark:text-indigo-300 mb-2">
+                실제 활용 사례
+              </h3>
+              <p className="text-gray-700 dark:text-gray-300 text-sm">
+                검색 엔진 (Google Knowledge Graph), 추천 시스템, 의료 진단,
+                금융 분석 등에서 지식 그래프의 추론 기능이 핵심 역할을 담당합니다.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
