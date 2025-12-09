@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Docker standalone output
+  output: 'standalone',
+
   // MDX 지원
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
 
