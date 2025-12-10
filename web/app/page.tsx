@@ -76,7 +76,7 @@ export default function HomePage() {
             관심 기업을 등록하고 매일 아침 AI가 분석한 맞춤형 투자 인사이트를 받아보세요
           </p>
           <Button asChild size="lg" variant="secondary">
-            <Link href="/login">지금 시작하기 →</Link>
+            <Link href="/dashboard">지금 시작하기 →</Link>
           </Button>
         </div>
       </section>
