@@ -67,6 +67,7 @@ export default function NewsOntologyPage() {
 
   // Ref for scrolling to results
   const resultsRef = useRef<HTMLDivElement>(null)
+  const analysisResultsRef = useRef<HTMLDivElement>(null)
 
   // 트렌딩 토픽
   const trendingTopics = [
@@ -194,6 +195,11 @@ export default function NewsOntologyPage() {
 
       const analysis = await response.json()
       setAnalysisResult(analysis)
+
+      // 분석 완료 후 결과 영역으로 스크롤
+      setTimeout(() => {
+        analysisResultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 100)
 
     } catch (err) {
       setAnalysisError(err instanceof Error ? err.message : '분석 중 오류가 발생했습니다')
@@ -414,7 +420,7 @@ export default function NewsOntologyPage() {
 
       {/* Ontology Analysis Results */}
       {analysisResult && (
-        <div className="container mx-auto px-4 py-8">
+        <div ref={analysisResultsRef} className="container mx-auto px-4 py-8 scroll-mt-4">
           <div className="space-y-6">
             {/* Summary */}
             <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-lg p-6 text-white">
