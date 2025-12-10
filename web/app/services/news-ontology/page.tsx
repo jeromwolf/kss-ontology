@@ -804,34 +804,6 @@ export default function NewsOntologyPage() {
               </div>
             )}
 
-            {/* CTA Section */}
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-xl p-8 text-white">
-              <div className="max-w-2xl">
-                <h2 className="text-3xl font-bold mb-4">
-                  지금 바로 시작하세요
-                </h2>
-                <p className="text-indigo-100 mb-6">
-                  무료로 하루 10회까지 뉴스 온톨로지 분석을 체험할 수 있습니다.
-                  Pro 플랜으로 업그레이드하면 무제한 분석과 SPARQL API를 사용할 수 있습니다.
-                </p>
-                <div className="flex flex-wrap gap-4">
-                  <button
-                    onClick={handleSearch}
-                    className="px-6 py-3 bg-white text-indigo-600 rounded-xl font-semibold
-                             hover:bg-indigo-50 transition-all hover:scale-105 shadow-lg"
-                  >
-                    무료로 시작하기
-                  </button>
-                  <Link
-                    href="/pricing"
-                    className="px-6 py-3 bg-indigo-500 text-white rounded-xl font-semibold
-                             hover:bg-indigo-400 transition-all border border-white/20"
-                  >
-                    가격 보기
-                  </Link>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
