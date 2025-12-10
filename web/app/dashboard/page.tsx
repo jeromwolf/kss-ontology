@@ -3,6 +3,62 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+// 데모 모드용 샘플 데이터
+const DEMO_WATCHLIST: WatchlistItem[] = [
+  { id: 1, companyName: '삼성전자', ticker: '005930', priority: 10, notes: 'AI 반도체 사업 주목', addedAt: new Date().toISOString() },
+  { id: 2, companyName: 'SK하이닉스', ticker: '000660', priority: 9, notes: 'HBM 시장 점유율 확대', addedAt: new Date().toISOString() },
+  { id: 3, companyName: '현대자동차', ticker: '005380', priority: 8, notes: '전기차 전환 가속화', addedAt: new Date().toISOString() },
+  { id: 4, companyName: 'LG에너지솔루션', ticker: '373220', priority: 8, notes: '배터리 공급 계약', addedAt: new Date().toISOString() },
+  { id: 5, companyName: '네이버', ticker: '035420', priority: 7, notes: 'AI 서비스 확장', addedAt: new Date().toISOString() },
+]
+
+const DEMO_INSIGHT: DailyInsight = {
+  date: new Date().toISOString().split('T')[0],
+  companies: [
+    {
+      companyName: '삼성전자',
+      sentiment: 'positive',
+      importance: 95,
+      summary: 'AI 반도체 수요 증가로 실적 개선 전망',
+      keyPoints: ['HBM3E 양산 확대', 'NVIDIA 파트너십 강화', '파운드리 수주 증가'],
+      relevantNews: [
+        { title: '삼성전자, AI 반도체 수주 1조원 돌파', description: 'HBM 수요 급증으로...', link: '#', pubDate: new Date().toISOString() }
+      ],
+      ontologyInsight: {
+        relations: [
+          { subject: '삼성전자', predicate: 'competes_with', object: 'SK하이닉스', strength: 0.9, description: 'HBM 시장 경쟁', confidence: 1.0, validatedBy: 'baseline' },
+          { subject: '삼성전자', predicate: 'supplies_to', object: 'NVIDIA', strength: 0.8, description: 'HBM 공급', confidence: 0.85, validatedBy: 'gpt' },
+        ],
+        industryImpact: {
+          industry: '반도체',
+          relatedCompanies: [
+            { name: 'SK하이닉스', relationship: '경쟁사', impactLevel: 80 },
+            { name: 'TSMC', relationship: '파운드리 경쟁', impactLevel: 70 },
+          ]
+        },
+        knowledgeGraph: { nodes: [], edges: [] }
+      }
+    },
+    {
+      companyName: 'SK하이닉스',
+      sentiment: 'positive',
+      importance: 90,
+      summary: 'HBM 시장 점유율 1위 유지',
+      keyPoints: ['HBM3E 수율 개선', 'NVIDIA 독점 공급', '영업이익 흑자 전환'],
+      relevantNews: [
+        { title: 'SK하이닉스, HBM 점유율 50% 돌파', description: 'AI 메모리 수요로...', link: '#', pubDate: new Date().toISOString() }
+      ],
+    }
+  ],
+  urgentItems: [
+    { company: '삼성전자', reason: 'NVIDIA 신규 GPU 발표 예정 - 공급 영향 가능성', news: { title: 'NVIDIA 차세대 GPU 발표', description: '', link: '#', pubDate: new Date().toISOString() } }
+  ],
+  opportunities: [
+    { company: 'LG에너지솔루션', reason: 'GM 신규 배터리 공장 발표', news: { title: 'GM, 미국 배터리 공장 증설', description: '', link: '#', pubDate: new Date().toISOString() } }
+  ],
+  marketOverview: '반도체 섹터 강세 지속. AI 관련주 상승세. 전기차 배터리 업종 긍정적 전망.'
+}
+
 interface WatchlistItem {
   id: number
   companyName: string
@@ -80,6 +136,7 @@ export default function DashboardPage() {
   const [insight, setInsight] = useState<DailyInsight | null>(null)
   const [insightLoading, setInsightLoading] = useState(false)
   const [insightError, setInsightError] = useState('')
+  const [isDemoMode, setIsDemoMode] = useState(false)
 
   useEffect(() => {
     fetchWatchlist()
@@ -89,15 +146,22 @@ export default function DashboardPage() {
     try {
       const res = await fetch('/api/watchlist')
 
-      if (res.status === 401) {
-        router.push('/login')
+      if (res.status === 401 || !res.ok) {
+        // 로그인 필요 또는 오류 시 데모 모드로 전환
+        console.log('Switching to demo mode')
+        setIsDemoMode(true)
+        setWatchlist(DEMO_WATCHLIST)
+        setInsight(DEMO_INSIGHT)
         return
       }
 
       const data = await res.json()
       setWatchlist(data.items || [])
     } catch (err) {
-      console.error('Failed to fetch watchlist:', err)
+      console.error('Failed to fetch watchlist, switching to demo mode:', err)
+      setIsDemoMode(true)
+      setWatchlist(DEMO_WATCHLIST)
+      setInsight(DEMO_INSIGHT)
     } finally {
       setLoading(false)
     }
@@ -302,16 +366,42 @@ export default function DashboardPage() {
                 <span>🔗</span>
                 Knowledge Graph
               </button>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-              >
-                로그아웃
-              </button>
+              {isDemoMode ? (
+                <button
+                  onClick={() => router.push('/login')}
+                  className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
+                >
+                  로그인
+                </button>
+              ) : (
+                <button
+                  onClick={handleLogout}
+                  className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
+                  로그아웃
+                </button>
+              )}
             </div>
           </div>
         </div>
       </header>
+
+      {/* 데모 모드 배너 */}
+      {isDemoMode && (
+        <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white py-3">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-center gap-3">
+            <span className="text-lg">🎮</span>
+            <span className="font-medium">데모 모드로 보고 계십니다.</span>
+            <span className="text-amber-100">로그인하시면 개인화된 관심 기업 관리와 실시간 인사이트를 받을 수 있습니다.</span>
+            <button
+              onClick={() => router.push('/login')}
+              className="ml-4 px-4 py-1 bg-white text-orange-600 rounded-full font-semibold text-sm hover:bg-orange-50 transition-colors"
+            >
+              로그인하기
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Watchlist Section */}
