@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Search, Newspaper, Network, TrendingUp, Sparkles, ArrowRight, BookOpen, Zap, Target, Loader2, AlertCircle, Brain, GitBranch, BarChart3 } from 'lucide-react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
@@ -65,6 +65,9 @@ export default function NewsOntologyPage() {
   // Selected news for analysis
   const [selectedNews, setSelectedNews] = useState<Set<number>>(new Set())
 
+  // Ref for scrolling to results
+  const resultsRef = useRef<HTMLDivElement>(null)
+
   // 트렌딩 토픽
   const trendingTopics = [
     { icon: '🔧', title: '반도체 수출 규제', count: 156 },
@@ -121,6 +124,11 @@ export default function NewsOntologyPage() {
 
       const data = await response.json()
       setResults(data.items || [])
+
+      // 검색 완료 후 결과 영역으로 스크롤
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 100)
 
     } catch (err) {
       setError(err instanceof Error ? err.message : '검색 중 오류가 발생했습니다')
@@ -197,27 +205,32 @@ export default function NewsOntologyPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-950">
 
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
+      {/* Hero Section - 검색 후 축소됨 */}
+      <div className={`relative overflow-hidden transition-all duration-500 ${searchPerformed ? 'py-4' : ''}`}>
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10"></div>
-        <div className="container mx-auto px-4 py-16 relative">
+        <div className={`container mx-auto px-4 relative transition-all duration-500 ${searchPerformed ? 'py-6' : 'py-16'}`}>
           <div className="max-w-4xl mx-auto text-center">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-full mb-6">
-              <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-              <span className="text-sm font-semibold text-indigo-900 dark:text-indigo-300">
-                세계 최초 온톨로지 기반 뉴스 분석
-              </span>
-            </div>
+            {/* Badge - 검색 후 숨김 */}
+            {!searchPerformed && (
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-full mb-6">
+                <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                <span className="text-sm font-semibold text-indigo-900 dark:text-indigo-300">
+                  세계 최초 온톨로지 기반 뉴스 분석
+                </span>
+              </div>
+            )}
 
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <h1 className={`font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent transition-all duration-500 ${searchPerformed ? 'text-2xl md:text-3xl mb-4' : 'text-5xl md:text-6xl mb-6'}`}>
               뉴스 온톨로지 분석
             </h1>
 
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-              AI가 뉴스에서 기업 관계를 자동으로 추출하고, <br className="hidden md:block" />
-              공급망 전체의 영향도를 실시간으로 추론합니다
-            </p>
+            {/* 설명 - 검색 후 숨김 */}
+            {!searchPerformed && (
+              <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
+                AI가 뉴스에서 기업 관계를 자동으로 추출하고, <br className="hidden md:block" />
+                공급망 전체의 영향도를 실시간으로 추론합니다
+              </p>
+            )}
 
             {/* Search Bar */}
             <div className="max-w-2xl mx-auto mb-8">
@@ -244,28 +257,30 @@ export default function NewsOntologyPage() {
               </div>
             </div>
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
-              <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-                <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">10K+</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">일일 뉴스 분석</div>
+            {/* Quick Stats - 검색 후 숨김 */}
+            {!searchPerformed && (
+              <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
+                <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                  <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">10K+</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">일일 뉴스 분석</div>
+                </div>
+                <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                  <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">500+</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">기업 관계 추적</div>
+                </div>
+                <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                  <div className="text-3xl font-bold text-pink-600 dark:text-pink-400">94.7%</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">분석 정확도</div>
+                </div>
               </div>
-              <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-                <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">500+</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">기업 관계 추적</div>
-              </div>
-              <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-                <div className="text-3xl font-bold text-pink-600 dark:text-pink-400">94.7%</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">분석 정확도</div>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Search Results Section - Show immediately after hero when search is performed */}
       {searchPerformed && (
-        <div className="container mx-auto px-4 py-8">
+        <div ref={resultsRef} className="container mx-auto px-4 py-8 scroll-mt-4">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
               <Search className="w-6 h-6 text-indigo-600" />
