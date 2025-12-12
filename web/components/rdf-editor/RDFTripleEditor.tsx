@@ -6,7 +6,7 @@ import { TripleList } from './TripleList';
 import { TripleVisualization } from './TripleVisualization';
 import { InferenceEngine } from './components/InferenceEngine';
 import { useTripleStore } from './hooks/useTripleStore';
-import { Download, Upload, Trash2, Play, HelpCircle, Box } from 'lucide-react';
+import { Download, Upload, Trash2, Play, HelpCircle, Box, Network } from 'lucide-react';
 import Link from 'next/link';
 import { RDFEditorHelp } from './RDFEditorHelp';
 import { SampleImporter } from './SampleImporter';
@@ -122,7 +122,7 @@ export const RDFTripleEditor: React.FC = () => {
             도움말
           </button>
           <Link
-            href="/sparql-playground"
+            href="/simulators/sparql-playground"
             onClick={() => {
               // SPARQL Playground로 데이터 전달
               localStorage.setItem('rdf-editor-triples-for-sparql', JSON.stringify({
@@ -135,6 +135,21 @@ export const RDFTripleEditor: React.FC = () => {
           >
             <Play className="w-4 h-4" />
             SPARQL 쿼리
+          </Link>
+          <Link
+            href="/simulators/knowledge-graph"
+            onClick={() => {
+              // Knowledge Graph로 데이터 전달
+              localStorage.setItem('rdf-editor-triples-for-kg', JSON.stringify({
+                triples: triples,
+                timestamp: new Date().toISOString(),
+                source: 'rdf-editor'
+              }));
+            }}
+            className="px-4 py-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-md hover:bg-indigo-200 dark:hover:bg-indigo-900/50 flex items-center gap-2"
+          >
+            <Network className="w-4 h-4" />
+            그래프 보기
           </Link>
           <SampleImporter onImport={importTriples} />
           <button

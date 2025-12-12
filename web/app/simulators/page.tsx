@@ -59,18 +59,17 @@ const simulators = [
   },
   {
     id: "knowledge-graph",
-    title: "Knowledge Graph",
-    description: "지식 그래프를 탐색하는 2D 시각화 도구",
+    title: "Knowledge Graph Visualizer",
+    description: "RDF 트리플을 인터랙티브 그래프로 시각화하는 도구",
     icon: Network,
     chapter: "Chapter 6: 지식 그래프",
     features: [
       "vis-network 기반 렌더링",
-      "인터랙티브 노드 탐색",
+      "RDF Editor 연동",
+      "신뢰도 필터링",
       "관계 유형별 색상 구분",
-      "실시간 필터링",
     ],
     status: "available",
-    href: "/dashboard/graph",
   },
 ]
 
