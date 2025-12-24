@@ -15,6 +15,9 @@ interface Node {
   name: string
   val: number
   color: string
+  x?: number
+  y?: number
+  z?: number
 }
 
 interface Link {
