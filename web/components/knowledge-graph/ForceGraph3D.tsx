@@ -26,7 +26,7 @@ interface Link {
 }
 
 export function ForceGraph3D({ triples, height = '600px', onNodeSelect }: ForceGraph3DProps) {
-  const fgRef = useRef<any>()
+  const fgRef = useRef<any>(null)
 
   // 그래프 데이터 변환
   const graphData = useMemo(() => {
