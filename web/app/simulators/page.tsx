@@ -14,7 +14,16 @@ export const metadata: Metadata = {
   },
 }
 
-const simulators = [
+const simulators: Array<{
+  id: string
+  title: string
+  description: string
+  icon: typeof Code
+  chapter: string
+  features: string[]
+  status: string
+  href?: string
+}> = [
   {
     id: "rdf-editor",
     title: "RDF Triple Editor",
