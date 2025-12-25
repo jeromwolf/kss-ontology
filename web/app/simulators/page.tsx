@@ -3,7 +3,7 @@ import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Code, Database, Lightbulb, Network } from "lucide-react"
+import { Code, Database, Lightbulb, Network, PlayCircle, GitBranch, Layers, Workflow, MessageSquare } from "lucide-react"
 
 export const metadata: Metadata = {
   title: '시뮬레이터',
@@ -80,6 +80,76 @@ const simulators: Array<{
     ],
     status: "available",
   },
+  {
+    id: "cypher-playground",
+    title: "Cypher Query Playground",
+    description: "Neo4j의 Cypher 쿼리 언어를 브라우저에서 직접 실습",
+    icon: PlayCircle,
+    chapter: "FDE Phase 3: Neo4j",
+    features: [
+      "Cypher 쿼리 실시간 실행",
+      "Property Graph 시각화",
+      "MATCH/CREATE/WHERE 지원",
+      "샘플 데이터 및 예제 쿼리",
+    ],
+    status: "available",
+  },
+  {
+    id: "graph-algorithms",
+    title: "Graph Algorithms Simulator",
+    description: "그래프 알고리즘을 시각적으로 이해하고 실습하는 도구",
+    icon: GitBranch,
+    chapter: "FDE Phase 3: Week 3",
+    features: [
+      "Centrality (PageRank, Degree, Betweenness)",
+      "Community Detection (Louvain, Label Propagation)",
+      "Similarity (Jaccard, Cosine)",
+      "Pathfinding (Dijkstra, BFS, A*)",
+    ],
+    status: "available",
+  },
+  {
+    id: "embedding-visualizer",
+    title: "Embedding Visualizer",
+    description: "텍스트 임베딩과 RAG 파이프라인을 시각화하는 도구",
+    icon: Layers,
+    chapter: "FDE Phase 3: Week 5",
+    features: [
+      "텍스트 → 벡터 변환 시각화",
+      "코사인 유사도 기반 검색",
+      "Chunking 전략 실험",
+      "RAG 파이프라인 시뮬레이션",
+    ],
+    status: "available",
+  },
+  {
+    id: "graphrag-pipeline",
+    title: "GraphRAG Pipeline Simulator",
+    description: "벡터 검색과 그래프 순회를 결합한 GraphRAG 시뮬레이터",
+    icon: Workflow,
+    chapter: "FDE Phase 3: Week 6",
+    features: [
+      "Local/Global/Hybrid 검색 전략",
+      "그래프 순회 시각화",
+      "커뮤니티 요약 조회",
+      "컨텍스트 통합 시뮬레이션",
+    ],
+    status: "available",
+  },
+  {
+    id: "text2cypher",
+    title: "Text2Cypher Simulator",
+    description: "자연어 질문을 Cypher 쿼리로 변환하는 시뮬레이터",
+    icon: MessageSquare,
+    chapter: "FDE Phase 3: Week 7",
+    features: [
+      "자연어 → Cypher 변환",
+      "Few-shot 프롬프팅",
+      "스키마 기반 쿼리 생성",
+      "신뢰도 점수 및 에러 핸들링",
+    ],
+    status: "available",
+  },
 ]
 
 export default function SimulatorsPage() {
@@ -88,7 +158,7 @@ export default function SimulatorsPage() {
       <div className="mb-12 text-center">
         <h1 className="text-4xl font-bold mb-4">인터랙티브 시뮬레이터</h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          온톨로지를 직접 실습하며 배울 수 있는 4가지 인터랙티브 도구
+          온톨로지와 그래프 데이터베이스를 직접 실습하며 배울 수 있는 9가지 인터랙티브 도구
         </p>
       </div>
 
@@ -151,14 +221,14 @@ export default function SimulatorsPage() {
         <CardHeader>
           <CardTitle>시뮬레이터 현황</CardTitle>
           <CardDescription>
-            4개 시뮬레이터 모두 사용 가능
+            9개 시뮬레이터 모두 사용 가능
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
             <h4 className="font-semibold mb-2">사용 가능한 시뮬레이터</h4>
             <p className="text-sm text-muted-foreground">
-              RDF Triple Editor, SPARQL Playground, Inference Engine, Knowledge Graph가 모두 사용 가능합니다.
+              RDF Triple Editor, SPARQL Playground, Inference Engine, Knowledge Graph, Cypher Playground, Graph Algorithms, Embedding Visualizer, GraphRAG Pipeline, Text2Cypher가 모두 사용 가능합니다.
             </p>
           </div>
 
