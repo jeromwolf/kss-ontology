@@ -615,6 +615,110 @@ owl:Thing
 
 ---
 
+## 2026-01-05: FDE Academy 프로젝트 현황 정리
+
+### 🎯 FDE Academy 전체 현황
+
+FDE (Forward Deployed Engineer) Academy는 **별도 레포지토리**로 운영 중:
+- **위치**: `/KellyGoogleSpace/fde-curriculum-simple/`
+- **레포**: 별도 Git 관리
+- **자체 CLAUDE.md**: 상세 개발 로그 보유
+
+### 📊 배포 현황
+
+| 환경 | URL | 상태 |
+|------|-----|------|
+| **프로덕션** | https://fde-academy.ai.kr | ✅ 운영 중 |
+| Vercel | https://fde-curriculum-simple.vercel.app | ✅ 운영 중 |
+| Cloud Run | https://fde-academy-827760573017.asia-northeast3.run.app | ✅ 운영 중 |
+
+**기술 스택**: Next.js 14, Prisma, Tailwind CSS, PostgreSQL
+
+### 📚 커리큘럼 완성도 (2026-01-05 기준)
+
+| Phase | 주제 | 완성도 | 비고 |
+|-------|------|--------|------|
+| Phase 1 | 데이터 엔지니어링 기초 | 1/8주 (12.5%) | Week 1 Python 심화 완료 |
+| Phase 2 | ML & 데이터 분석 | 0/8주 (0%) | 미착수 |
+| **Phase 3** | **Knowledge Graph** | **8/8주 (100%)** | ✅ 전체 완료! |
+| Phase 4 | 클라우드 & 인프라 | 0/8주 (0%) | 미착수 |
+| Phase 5 | GenAI & RAG | 0/8주 (0%) | 미착수 |
+| Phase 6 | 산업별 심화 | 0/8주 (0%) | 미착수 |
+
+**총: 48주 중 9주 완료 (약 19%)**
+
+### 🎮 주요 기능 (v2.4)
+
+1. **게이미피케이션 시스템** (2025-12-31 추가)
+   - 포인트 시스템 (태스크 완료 시 자동 지급)
+   - 뱃지 시스템 (16개 뱃지, 5단계 등급)
+   - 리더보드 (`/leaderboard`)
+   - 연속 학습 스트릭 추적
+
+2. **학습 기능**
+   - 퀴즈 정답 체크 (즉시 피드백)
+   - YouTube 영상 플레이어
+   - 코딩 실습 (Pyodide Python 실행)
+   - 진행률 추적
+
+3. **KSS-Ontology 시뮬레이터 연계**
+   - Week 2: Cypher Playground
+   - Week 3: Graph Algorithms
+   - Week 5: Embedding Visualizer
+   - Week 6: GraphRAG Pipeline
+   - Week 7: Text2Cypher
+
+### 🔗 KSS-Ontology 내 FDE 관련 문서
+
+| 파일 | 설명 |
+|------|------|
+| `docs/FDE_COMPREHENSIVE_RESEARCH.md` | FDE 종합 리서치 (채용, 기술, 연봉 등) |
+| `docs/FDE_CURRICULUM_DRAFT.md` | 커리큘럼 초안 v0.2 |
+| `docs/FDE_FOUNDRY_SPECIAL_COURSE.md` | Palantir Foundry 스페셜 과정 (2개월) |
+| `docs/DOMAIN_KNOWLEDGE_RESOURCES.md` | 도메인 지식 자료 |
+| `docs/FIBO_DEEP_DIVE.md` | 금융 온톨로지 심층 분석 |
+| `docs/FHIR_DEEP_DIVE.md` | 의료 데이터 표준 심층 분석 |
+
+### 📈 최근 주요 커밋 (fde-curriculum-simple)
+
+```
+1e95b9a fix: 홈페이지 footer에도 버전 정보 표시
+c6550ea feat: Footer에 버전 정보 표시 (v1.1.0)
+7f060f9 feat: Week 2,6-8 Common Pitfalls 추가
+0febb70 feat: Week 4-8 커리큘럼 품질 개선
+e7b6fb5 feat: 리더보드 & 게이미피케이션 시스템 구현
+0c5173b feat: Pyodide Python 실행 기능
+c460f11 feat: Week 3-7 시뮬레이터 연계 추가
+```
+
+### 🎯 다음 작업
+
+1. **Phase 1 콘텐츠 제작** (Week 2-8)
+   - SQL 기초, 데이터 파이프라인, dbt, Airflow
+2. **Phase 2 전체 콘텐츠**
+   - ML/데이터 분석 기초
+3. **영상 제작**
+   - 각 Week video task에 실제 YouTube 영상 연결
+4. **퀴즈 고도화**
+   - 점수 DB 저장, 오답 노트
+
+### 💡 두 프로젝트 관계
+
+```
+kss-ontology (현재 레포)
+├── 온톨로지 인프라 (Triple Store, SPARQL 등)
+├── 시뮬레이터 (Cypher, Graph Algorithms 등)
+└── FDE 관련 문서 (리서치, 커리큘럼 초안)
+
+fde-curriculum-simple (별도 레포)
+├── FDE Academy 웹앱
+├── 커리큘럼 콘텐츠 (lib/curriculum/)
+├── 학습 관리 시스템 (진행률, 포인트, 뱃지)
+└── 시뮬레이터 연계 (kss-ontology 참조)
+```
+
+---
+
 ## 2025-12-06: FDE Academy 커리큘럼 v2.2 완성
 
 ### 🎯 목표
