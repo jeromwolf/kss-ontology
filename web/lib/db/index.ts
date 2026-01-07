@@ -6,13 +6,25 @@ import * as schema from './schema'
 let pool: Pool | null = null
 let drizzleDb: NodePgDatabase<typeof schema> | null = null
 
+// Extract schema from DATABASE_URL if present
+function getSchemaFromUrl(): string {
+  const url = process.env.DATABASE_URL || ''
+  const schemaMatch = url.match(/[?&]schema=([^&]+)/)
+  return schemaMatch ? schemaMatch[1] : 'public'
+}
+
 function getPool() {
   if (!pool) {
+    const schema = getSchemaFromUrl()
     pool = new Pool({
       connectionString: process.env.DATABASE_URL || '',
       max: 10, // 최대 연결 수
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000,
+    })
+    // Set search_path for all connections
+    pool.on('connect', (client) => {
+      client.query(`SET search_path TO ${schema}, public`)
     })
   }
   return pool

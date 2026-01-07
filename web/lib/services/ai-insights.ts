@@ -19,10 +19,22 @@ function getOpenAI() {
   return openai
 }
 
+// Extract schema from DATABASE_URL if present
+function getSchemaFromUrl(): string {
+  const url = process.env.DATABASE_URL || ''
+  const schemaMatch = url.match(/[?&]schema=([^&]+)/)
+  return schemaMatch ? schemaMatch[1] : 'public'
+}
+
 function getPool() {
   if (!pool) {
+    const schema = getSchemaFromUrl()
     pool = new Pool({
       connectionString: process.env.DATABASE_URL || '',
+    })
+    // Set search_path for all connections
+    pool.on('connect', (client) => {
+      client.query(`SET search_path TO ${schema}, public`)
     })
   }
   return pool
